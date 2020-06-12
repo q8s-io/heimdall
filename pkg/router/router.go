@@ -6,7 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	ge "github.com/70data/heimdall/pkg/infrastructure/gin-extender"
+	ge "github.com/q8s-io/heimdall/pkg/infrastructure/gin-extender"
 )
 
 var requestInput io.Writer = os.Stdout

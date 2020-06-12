@@ -5,8 +5,8 @@ import (
 	
 	"github.com/BurntSushi/toml"
 	
-	ge "github.com/70data/heimdall/pkg/infrastructure/gin-extender"
-	"github.com/70data/heimdall/pkg/models"
+	ge "github.com/q8s-io/heimdall/pkg/infrastructure/gin-extender"
+	"github.com/q8s-io/heimdall/pkg/models"
 )
 
 func Init(confPath string) {

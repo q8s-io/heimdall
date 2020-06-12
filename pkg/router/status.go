@@ -3,7 +3,7 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 
-	"github.com/70data/heimdall/pkg/controller"
+	"github.com/q8s-io/heimdall/pkg/controller"
 )
 
 func statusRoutes(route *gin.Engine) {

@@ -18,3 +18,10 @@ func Sender(c *gin.Context, code int, err string, data interface{}) {
 	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	c.String(200, string(responseJSON))
 }
+
+func SimpleSender(c *gin.Context, data interface{}) {
+	responseJSON, _ := json.Marshal(data)
+	c.Writer.Header().Set("Content-Type", "application/json")
+	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+	c.String(200, string(responseJSON))
+}

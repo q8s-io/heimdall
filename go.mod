@@ -1,4 +1,4 @@
-module github.com/70data/heimdall
+module github.com/q8s-io/heimdall
 
 go 1.12
 
