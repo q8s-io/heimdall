@@ -18,11 +18,12 @@ services:
     ports:
       - "8228:8228"
     environment:
+      - ANCHORE_LOG_LEVEL=DEBUG
       - ANCHORE_ENDPOINT_HOSTNAME=api
       - ANCHORE_DB_HOST=db
       - ANCHORE_DB_PASSWORD=mysecretpassword
-    volumes:
-      - ./config.yaml:/config/config.yaml
+#    volumes:
+#      - ./config.yaml:/config/config.yaml
     command: ["anchore-manager", "service", "start", "apiext"]
 
   # Catalog is the primary persistence and state manager of the system
