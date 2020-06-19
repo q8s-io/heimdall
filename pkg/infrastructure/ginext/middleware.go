@@ -1,4 +1,4 @@
-package gin_extender
+package ginext
 
 import (
 	"github.com/gin-gonic/gin"

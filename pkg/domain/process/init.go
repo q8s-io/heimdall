@@ -5,7 +5,7 @@ import (
 	
 	"github.com/BurntSushi/toml"
 	
-	ge "github.com/q8s-io/heimdall/pkg/infrastructure/gin-extender"
+	"github.com/q8s-io/heimdall/pkg/infrastructure/ginext"
 	"github.com/q8s-io/heimdall/pkg/models"
 )
 
@@ -17,5 +17,5 @@ func Init(confPath string) {
 	}
 	log.Println(models.Config)
 	// init log
-	ge.InitLog()
+	ginext.InitLog()
 }
