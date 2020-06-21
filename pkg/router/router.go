@@ -8,8 +8,9 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/q8s-io/heimdall/pkg/infrastructure/ginext"
-	rDefault "github.com/q8s-io/heimdall/pkg/router/default"
-	rTools "github.com/q8s-io/heimdall/pkg/router/tools"
+	rImage "github.com/q8s-io/heimdall/pkg/router/image"
+	rSystem "github.com/q8s-io/heimdall/pkg/router/system"
+	rTool "github.com/q8s-io/heimdall/pkg/router/tool"
 )
 
 var requestInput io.Writer = os.Stdout
@@ -21,7 +22,7 @@ func Run(serverTpye string) {
 	router.Use(ginext.Cors())
 	router.Use(ginext.GinPanic(requestInput))
 
-	rDefault.Routes(router)
+	rSystem.Routes(router)
 	customRoutes(serverTpye, router)
 
 	_ = router.Run(":12001")
@@ -29,8 +30,10 @@ func Run(serverTpye string) {
 
 func customRoutes(serverTpye string, router *gin.Engine) {
 	switch serverTpye {
-	case "tools":
-		rTools.Routes(router)
+	case "tool":
+		rTool.Routes(router)
+	case "image":
+		rImage.Routes(router)
 	default:
 		log.Println(serverTpye)
 	}

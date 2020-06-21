@@ -8,7 +8,7 @@ import (
 )
 
 func GetUUID() string {
-	u4, _ := uuid.NewV4()
+	u4 := uuid.NewV4()
 	tempID := fmt.Sprintf("%s", u4)
 	UUID := strings.Replace(tempID, "-", "", -1)
 	return UUID

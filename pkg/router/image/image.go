@@ -1,15 +1,15 @@
-package _default
+package image
 
 import (
 	"github.com/gin-gonic/gin"
-	
+
 	"github.com/q8s-io/heimdall/pkg/controller"
 )
 
 func Routes(router *gin.Engine) {
-	status := router.Group("/api/system")
+	images := router.Group("/api/images")
 	{
-		// demo
-		status.GET("/status", controller.Status)
+		// image name
+		images.POST("/", controller.GetImageInfoByName)
 	}
 }
