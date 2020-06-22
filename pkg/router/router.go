@@ -7,33 +7,41 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/q8s-io/heimdall/pkg/controller"
+	"github.com/q8s-io/heimdall/pkg/domain/analyzer"
+	"github.com/q8s-io/heimdall/pkg/domain/scancenter"
+	"github.com/q8s-io/heimdall/pkg/domain/scanner"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/ginext"
-	rImage "github.com/q8s-io/heimdall/pkg/router/image"
-	rSystem "github.com/q8s-io/heimdall/pkg/router/system"
-	rTool "github.com/q8s-io/heimdall/pkg/router/tool"
 )
 
-var requestInput io.Writer = os.Stdout
-
-func Run(serverTpye string) {
+func CustomRoutes() *gin.Engine {
+	var requestInput io.Writer = os.Stdout
 	router := gin.New()
-
 	router.Use(ginext.GinLogger())
 	router.Use(ginext.Cors())
 	router.Use(ginext.GinPanic(requestInput))
 
-	rSystem.Routes(router)
-	customRoutes(serverTpye, router)
+	system := router.Group("/api/system")
+	{
+		//status
+		system.GET("/status", controller.Status)
+	}
 
-	_ = router.Run(":12001")
+	return router
 }
 
-func customRoutes(serverTpye string, router *gin.Engine) {
+func Run(serverTpye string) {
 	switch serverTpye {
+	case "api":
+		RunAPI()
+	case "scancenter":
+		scancenter.RunScanCenter()
+	case "analyzer":
+		analyzer.RunAnalyzer()
+	case "scanner":
+		scanner.RunScanner()
 	case "tool":
-		rTool.Routes(router)
-	case "image":
-		rImage.Routes(router)
+		RunTool()
 	default:
 		log.Println(serverTpye)
 	}

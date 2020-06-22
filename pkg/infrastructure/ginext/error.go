@@ -6,14 +6,13 @@ import (
 	"io/ioutil"
 	"log"
 	"runtime"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
 // GinPanic is log panic
 func GinPanic(out io.Writer) gin.HandlerFunc {
-	data := make([]interface{},0)
+	data := make([]interface{}, 0)
 	return func(c *gin.Context) {
 		buf, _ := ioutil.ReadAll(c.Request.Body)
 		// rdrc for context
@@ -44,6 +43,5 @@ func GinPanic(out io.Writer) gin.HandlerFunc {
 
 // ErrorLogger is error log for self
 func ErrorLogger(errAgs error) {
-	timeMark := time.Now()
-	log.Println(timeMark.Format("[2006/01/02 15:04:05]"), errAgs)
+	log.Println(errAgs)
 }

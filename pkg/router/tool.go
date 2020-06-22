@@ -1,15 +1,17 @@
-package tool
+package router
 
 import (
-	"github.com/gin-gonic/gin"
-
 	"github.com/q8s-io/heimdall/pkg/controller"
 )
 
-func Routes(router *gin.Engine) {
+func RunTool() {
+	router := CustomRoutes()
+
 	tools := router.Group("/api/tools")
 	{
 		// id
 		tools.GET("/id", controller.GetID)
 	}
+
+	_ = router.Run(":12001")
 }

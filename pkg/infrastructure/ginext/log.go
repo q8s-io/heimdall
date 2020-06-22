@@ -26,13 +26,12 @@ func GinLogger() gin.HandlerFunc {
 		path := c.Request.URL.Path
 		latency := timeEnd.Sub(timeStart)
 		comment := c.Errors
-		log.Println(timeEnd.Format("[2006/01/02 15:04:05]"), clientIP, statusCode, method, path, latency, comment)
+		log.Println(clientIP, statusCode, method, path, latency, comment)
 	}
 }
 
 // CustomLogger is custom log for self
 func CustomLogger(args ...string) {
 	logInfo := strings.Join(args, " ")
-	timeMark := time.Now()
-	log.Println(timeMark.Format("[2006/01/02 15:04:05]"), logInfo)
+	log.Println(logInfo)
 }
