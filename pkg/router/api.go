@@ -2,9 +2,12 @@ package router
 
 import (
 	"github.com/q8s-io/heimdall/pkg/controller"
+	"github.com/q8s-io/heimdall/pkg/infrastructure/mysql"
 )
 
 func RunAPI() {
+	go mysql.Init()
+	
 	router := CustomRoutes()
 
 	images := router.Group("/api/images")

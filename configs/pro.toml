@@ -1,6 +1,6 @@
 [mysql]
-host = ""
-port = ""
-db = ""
-username = ""
-password = ""
+host = "10.9.140.125"
+port = "3306"
+db = "devsecops"
+username = "root"
+password = "Qihoo2020"
