@@ -1,15 +1,11 @@
 package judge
 
 import (
-	"log"
-
 	"github.com/q8s-io/heimdall/pkg/domain/scancenter"
 	"github.com/q8s-io/heimdall/pkg/models"
 )
 
-// Judge
-func Judge(imageInfoRequest *models.ImageInfoRequest) interface{} {
-	log.Println(imageInfoRequest)
+func Judge(imageInfoRequest *models.ImageInfoRequest) (interface{}, error) {
 	//get data by imageName & imageDigest
 
 	//if data is empty, run scan center

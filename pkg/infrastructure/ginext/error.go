@@ -10,7 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GinPanic is log panic
 func GinPanic(out io.Writer) gin.HandlerFunc {
 	data := make([]interface{}, 0)
 	return func(c *gin.Context) {
@@ -41,7 +40,6 @@ func GinPanic(out io.Writer) gin.HandlerFunc {
 	}
 }
 
-// ErrorLogger is error log for self
 func ErrorLogger(errAgs error) {
 	log.Println(errAgs)
 }

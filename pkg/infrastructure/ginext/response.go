@@ -13,7 +13,6 @@ func SimpleSender(c *gin.Context, data interface{}) {
 	c.String(200, string(responseJSON))
 }
 
-// Sender is response for gin
 func Sender(c *gin.Context, code int, err string, data interface{}) {
 	responseData := map[string]interface{}{
 		"code": code,

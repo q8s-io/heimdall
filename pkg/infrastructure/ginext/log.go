@@ -9,12 +9,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// InitLog is init log info
 func InitLog() {
 	log.SetOutput(os.Stdout)
 }
 
-// GinLogger is gin log format
 func GinLogger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		timeStart := time.Now()
@@ -30,7 +28,6 @@ func GinLogger() gin.HandlerFunc {
 	}
 }
 
-// CustomLogger is custom log for self
 func CustomLogger(args ...string) {
 	logInfo := strings.Join(args, " ")
 	log.Println(logInfo)

@@ -9,14 +9,13 @@ import (
 	"github.com/q8s-io/heimdall/pkg/infrastructure/ginext"
 )
 
-// CreateScanTask
 func CreateScanTask(c *gin.Context) {
 	body := make(map[string]string)
 	ginext.ResolveJSON(c, &body)
 	imageName := body["image_name"]
 
 	//scan
-	scanData := scancenter.CreateScan(imageName)
+	scanData := scancenter.GetScanTask(imageName)
 	log.Println(scanData)
 
 	//return
@@ -24,7 +23,6 @@ func CreateScanTask(c *gin.Context) {
 	ginext.Sender(c, 0, "This is status.", data)
 }
 
-// GetScanTaskData
 func GetScanTaskData(c *gin.Context) {
 	taskID := c.Param("taskid")
 

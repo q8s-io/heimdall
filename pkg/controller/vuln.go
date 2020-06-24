@@ -8,7 +8,6 @@ import (
 	"github.com/q8s-io/heimdall/pkg/models"
 )
 
-// GetImageVulnData
 func GetImageVulnData(c *gin.Context) {
 	imageInfoRequest := new(models.ImageInfoRequest)
 	if err := c.ShouldBind(&imageInfoRequest); err != nil {
@@ -16,7 +15,12 @@ func GetImageVulnData(c *gin.Context) {
 	}
 
 	//judge
-	judgeData := judge.Judge(imageInfoRequest)
+	judgeData, err := judge.Judge(imageInfoRequest)
+	if err != nil {
+		//return
+		ginext.Sender(c, 1, err.Error(), "")
+		return
+	}
 
 	//return
 	ginext.Sender(c, 0, "This is status.", judgeData)

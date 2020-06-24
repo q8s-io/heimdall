@@ -9,7 +9,7 @@ func RunTool() {
 
 	tools := router.Group("/api/tools")
 	{
-		// id
+		//id
 		tools.GET("/id", controller.GetID)
 	}
 

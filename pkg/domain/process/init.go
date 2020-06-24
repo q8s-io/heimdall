@@ -8,11 +8,11 @@ import (
 )
 
 func Init(confPath string) {
-	// init runtime
+	//init runtime
 	if _, err := toml.DecodeFile(confPath, &models.Config); err != nil {
 		ginext.ErrorLogger(err)
 		return
 	}
-	// init log
+	//init log
 	ginext.InitLog()
 }

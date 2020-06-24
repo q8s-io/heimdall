@@ -1,34 +1,37 @@
 package scancenter
 
 import (
-	"github.com/q8s-io/heimdall/pkg/infrastructure/distribution"
 	"github.com/q8s-io/heimdall/pkg/models"
+	"github.com/q8s-io/heimdall/pkg/service"
 )
 
-// RunScanCenter
-func RunScanCenter() {
-
-	//kafka consumer
-
-	//write to redis, analyzer job status
-	//generate scanner job id
-
-	//kafka producer
-
-	//scan redis
-	ScanRedis()
+func PreperScanenter(imageInfoRequest *models.ImageInfoRequest) (interface{}, error) {
+	//preper task data
+	imageVulnInfo := ConvertPreperTask(imageInfoRequest)
+	err := service.NewImageScan(imageVulnInfo)
+	if err != nil {
+		return nil, err
+	}
+	//preper job analyzer
+	analyzerJobInfo := ConvertPreperJobAnalyzer(&imageVulnInfo)
+	service.NewImageAnalyzer(analyzerJobInfo)
+	return imageVulnInfo, nil
 }
 
-func PreperScanenter(imageInfoRequest *models.ImageInfoRequest) models.ImageVulnInfo {
-	//preper data
-	ImageVulnInfo := new(models.ImageVulnInfo)
-	ImageVulnInfo.ImageName = imageInfoRequest.ImageName
-	ImageVulnInfo.ImageDigest = imageInfoRequest.ImageDigest
-	ImageVulnInfo.TaskID = distribution.GetUUID()
-	ImageVulnInfo.TaskStatus = models.TaskStatusRunning
-	ImageVulnInfo.AnchoreTaskID = distribution.GetUUID()
-	//write to mysql
-	//write to redis
-	//write to kafka, trigger analyzer
-	return *ImageVulnInfo
+func GetScanTask(imageName string) string {
+	//create task id、job id
+
+	//get data by image name, if status is running, return data
+
+	//write to mysql, image name、task id、task status(running)
+
+	//write to redis, task id、job id、status(running)
+
+	//write kafka, analyzer topic, task id、job id、image name
+
+	return ""
+}
+
+func GetScanTaskData(taskID string) string {
+	return ""
 }

@@ -1,5 +1,5 @@
 [mysql]
-host = "10.9.140.125"
+host = "106.75.119.141"
 port = "3306"
 db = "devsecops"
 username = "root"

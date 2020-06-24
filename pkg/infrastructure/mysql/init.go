@@ -1,21 +1,33 @@
 package mysql
 
 import (
+	"time"
+
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 
 	"github.com/q8s-io/heimdall/pkg/models"
 )
 
+var Client *sqlx.DB
+var connErr interface{}
+
 func Init() {
 	mysqlConfig := models.Config.MySQL
 	connInfo := mysqlConfig.UserName + ":" + mysqlConfig.PassWord + "@tcp(" + mysqlConfig.Host + ":" + mysqlConfig.Port + ")/" + mysqlConfig.DB + "?charset=utf8&parseTime=True&loc=Local"
 
-	var pool *sqlx.DB
-	pool, err := sqlx.Open("mysql", connInfo)
-	if err != nil {
-		panic(err)
+	Client, connErr = sqlx.Open("mysql", connInfo)
+	if connErr != nil {
+		panic(connErr)
 	}
 
-	pool.SetMaxOpenConns(5)
+	Client.SetMaxOpenConns(5)
+
+	go func() {
+		taskConnect := time.NewTicker(3 * time.Second)
+		for {
+			<-taskConnect.C
+			go Status()
+		}
+	}()
 }
