@@ -4,8 +4,11 @@ import (
 	"flag"
 	"log"
 
+	"github.com/q8s-io/heimdall/pkg/domain/analyzer"
 	"github.com/q8s-io/heimdall/pkg/domain/process"
+	"github.com/q8s-io/heimdall/pkg/infrastructure/kafka"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/mysql"
+	"github.com/q8s-io/heimdall/pkg/infrastructure/redis"
 	"github.com/q8s-io/heimdall/pkg/router"
 )
 
@@ -14,9 +17,9 @@ var serverTpye = flag.String("type", "api", "The type of server.")
 
 func Run() {
 	flag.Parse()
-	//init
+	// init
 	process.Init(*confPath)
-	//app
+	// app
 	RunApp(*serverTpye)
 }
 
@@ -37,28 +40,18 @@ func RunApp(serverTpye string) {
 
 func RunScanCenter() {
 	mysql.Init()
+	redis.Init()
+	kafka.InitSyncProducer()
 	router.RunAPI()
 }
 
 func RunAnalyzer() {
-	//kafka consumer
-
-	//run pull、inspect、delete
-	//timeout, write to redis, job id status is failed
-
-	//write to mysql, image name、digest、layer
-
-	//kafka producer, task id、job id、image name
+	kafka.InitConsumer("analyzer")
+	analyzer.JobAnalyzer()
 }
 
 func RunScannerAnchore() {
-	//kafka consumer
 
-	//run anchore
-	//timeout, write to redis, job id status is failed
-
-	//write to mysql, job data
-	//write to redis, job status
 }
 
 func RunTool() {

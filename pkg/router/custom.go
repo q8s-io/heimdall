@@ -10,7 +10,7 @@ import (
 	"github.com/q8s-io/heimdall/pkg/infrastructure/ginext"
 )
 
-func CustomRoutes() *gin.Engine {
+func RouteCustom() *gin.Engine {
 	var requestInput io.Writer = os.Stdout
 	router := gin.New()
 	router.Use(ginext.GinLogger())
@@ -19,7 +19,7 @@ func CustomRoutes() *gin.Engine {
 
 	system := router.Group("/api/system")
 	{
-		//status
+		// status
 		system.GET("/status", controller.Status)
 	}
 

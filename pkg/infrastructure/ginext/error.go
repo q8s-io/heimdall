@@ -33,13 +33,9 @@ func GinPanic(out io.Writer) gin.HandlerFunc {
 				}
 				log.Printf("[Panic Info] %s", errStack)
 				// return
-				Sender(c, 1, "Data format error.", data)
+				Sender(c, 1, "Data format error:", data)
 			}
 		}()
 		c.Next()
 	}
-}
-
-func ErrorLogger(errAgs error) {
-	log.Println(errAgs)
 }

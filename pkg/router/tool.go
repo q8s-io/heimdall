@@ -5,11 +5,11 @@ import (
 )
 
 func RunTool() {
-	router := CustomRoutes()
+	router := RouteCustom()
 
 	tools := router.Group("/api/tools")
 	{
-		//id
+		// get uuid
 		tools.GET("/id", controller.GetID)
 	}
 

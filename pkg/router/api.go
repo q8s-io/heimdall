@@ -5,20 +5,12 @@ import (
 )
 
 func RunAPI() {
-	router := CustomRoutes()
+	router := RouteCustom()
 
 	images := router.Group("/api/images")
 	{
-		//get vuln result
+		// get image vuln result
 		images.POST("/vuln/", controller.GetImageVulnData)
-	}
-
-	scan := router.Group("/api/scan")
-	{
-		//create scan task
-		scan.POST("/task/", controller.CreateScanTask)
-		//get scan task data
-		scan.GET("/task/:taskid", controller.GetScanTaskData)
 	}
 
 	_ = router.Run(":12001")

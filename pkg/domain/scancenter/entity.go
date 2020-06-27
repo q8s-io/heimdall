@@ -2,28 +2,36 @@ package scancenter
 
 import (
 	"time"
-	
+
 	"github.com/q8s-io/heimdall/pkg/infrastructure/distribution"
 	"github.com/q8s-io/heimdall/pkg/models"
 )
 
-func ConvertPreperTask(imageInfoRequest *models.ImageInfoRequest) models.ImageVulnInfo {
-	ImageVulnInfo := new(models.ImageVulnInfo)
-	ImageVulnInfo.TaskID = distribution.GetUUID()
-	ImageVulnInfo.TaskStatus = models.TaskStatusRunning
-	ImageVulnInfo.ImageName = imageInfoRequest.ImageName
-	ImageVulnInfo.ImageDigest = imageInfoRequest.ImageDigest
-	ImageVulnInfo.CreateTime = time.Now().Format("2006-01-02 15:04:05")
-	return *ImageVulnInfo
+func ConvertTaskImageScan(imageRequestInfo *models.ImageRequestInfo) *models.ImageVulnInfo {
+	imageVulnInfo := new(models.ImageVulnInfo)
+	imageVulnInfo.TaskID = distribution.GetUUID()
+	imageVulnInfo.TaskStatus = models.StatusRunning
+	imageVulnInfo.ImageName = imageRequestInfo.ImageName
+	imageVulnInfo.ImageDigest = imageRequestInfo.ImageDigest
+	imageVulnInfo.CreateTime = time.Now().Format("2006-01-02 15:04:05")
+	return imageVulnInfo
 }
 
-func ConvertPreperJobAnalyzer(imageVulnInfo *models.ImageVulnInfo) models.AnalyzerJobInfo {
-	AnalyzerJobInfo := new(models.AnalyzerJobInfo)
-	AnalyzerJobInfo.TaskID = imageVulnInfo.TaskID
-	AnalyzerJobInfo.JobID = distribution.GetUUID()
-	AnalyzerJobInfo.JobStatus = models.JobStatusRunning
-	AnalyzerJobInfo.ImageName = imageVulnInfo.ImageName
-	AnalyzerJobInfo.ImageDigest = imageVulnInfo.ImageDigest
-	AnalyzerJobInfo.CreateTime = time.Now().Format("2006-01-02 15:04:05")
-	return *AnalyzerJobInfo
+func ConvertJobImageAnalyzer(imageVulnInfo *models.ImageVulnInfo) *models.JobAnalyzerInfo {
+	jobAnalyzerInfo := new(models.JobAnalyzerInfo)
+	jobAnalyzerInfo.TaskID = imageVulnInfo.TaskID
+	jobAnalyzerInfo.JobID = distribution.GetUUID()
+	jobAnalyzerInfo.JobStatus = models.StatusRunning
+	jobAnalyzerInfo.ImageName = imageVulnInfo.ImageName
+	jobAnalyzerInfo.ImageDigest = imageVulnInfo.ImageDigest
+	jobAnalyzerInfo.CreateTime = time.Now().Format("2006-01-02 15:04:05")
+	return jobAnalyzerInfo
+}
+
+func ConvertImageAnalyzerMsg(jobAnalyzerInfo *models.JobAnalyzerInfo) *models.JobAnalyzerMsg {
+	jobAnalyzerMsg := new(models.JobAnalyzerMsg)
+	jobAnalyzerMsg.TaskID = jobAnalyzerInfo.TaskID
+	jobAnalyzerMsg.JobID = jobAnalyzerInfo.JobID
+	jobAnalyzerMsg.ImageName = jobAnalyzerInfo.ImageName
+	return jobAnalyzerMsg
 }

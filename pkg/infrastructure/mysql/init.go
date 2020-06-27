@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"log"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -18,7 +19,7 @@ func Init() {
 
 	Client, connErr = sqlx.Open("mysql", connInfo)
 	if connErr != nil {
-		panic(connErr)
+		log.Println(connErr)
 	}
 
 	Client.SetMaxOpenConns(5)

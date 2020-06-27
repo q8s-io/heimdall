@@ -8,9 +8,9 @@ import (
 )
 
 func GetID(c *gin.Context) {
-	//get id
+	// get id
 	id := distribution.GetUUID()
-	//return
+	// return
 	data := make(map[string]string)
 	data["id"] = id
 	ginext.Sender(c, 0, "This is status.", data)
