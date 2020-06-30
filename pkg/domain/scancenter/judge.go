@@ -7,27 +7,40 @@ import (
 
 func JudgeTask(imageRequestInfo *models.ImageRequestInfo) (interface{}, error) {
 	// get data by imageName & imageDigest
-
+	taskImageScanDataList := GetTaskImageScan(imageRequestInfo)
 	// if data is empty, run scan center
-	return TaskImageScanRotaryCreate(imageRequestInfo)
-
+	if len(*taskImageScanDataList) == 0 {
+		return TaskImageScanRotaryCreate(imageRequestInfo)
+	}
+	taskImageScanData := (*taskImageScanDataList)[0]
 	// if status is running, return data
-
-	// if status is done
-	// if imageDigest is empty, return data
-
-	// if imageDigest is db.imageDigest, return data
-
-	// if imageDigest not is db.imageDigest, mark old data, run scan center
+	if taskImageScanData.TaskStatus == models.StatusRunning {
+		return TaskImageScanMerger(&taskImageScanData)
+	}
+	// if status is succeed
+	if taskImageScanData.TaskStatus == models.StatusSucceed {
+		// if imageDigest is empty, return data
+		if imageRequestInfo.ImageDigest == "" {
+			return TaskImageScanMerger(&taskImageScanData)
+			// if imageDigest is db.imageDigest, return data
+		} else if imageRequestInfo.ImageDigest == taskImageScanData.ImageDigest {
+			return TaskImageScanMerger(&taskImageScanData)
+			// if imageDigest not is db.imageDigest, mark old data, run scan center
+		} else {
+			// mark old data
+			//
+			return TaskImageScanRotaryCreate(imageRequestInfo)
+		}
+	}
+	return nil, nil
 }
 
 func JudgeTaskRotary(taskID string) {
 	// judge status
 	currentStatus := GetTaskCurrentStatus(taskID)
-
 	// mark task status
 	if currentStatus == models.StatusSucceed {
-		service.UpdateTaskImageScan(taskID, models.StatusSucceed)
+		service.UpdateTaskImageScanStatus(taskID, models.StatusSucceed)
 		service.DeleteTask(taskID)
 	}
 }

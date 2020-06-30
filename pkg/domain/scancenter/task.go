@@ -5,13 +5,24 @@ import (
 	"github.com/q8s-io/heimdall/pkg/service"
 )
 
-func CreateTaskImageScan(imageRequestInfo *models.ImageRequestInfo) (*models.ImageVulnInfo, error) {
+func CreateTaskImageScan(imageRequestInfo *models.ImageRequestInfo) (*models.TaskImageScanInfo, error) {
 	// preper task
-	imageVulnInfo := CreateImageVulnInfo(imageRequestInfo)
-	imageVulnData := ConvertImageVulnData(imageVulnInfo, 1)
-	err := service.NewTaskImageScan(*imageVulnData)
+	taskImageScanInfo := CreateTaskImageScanInfo(imageRequestInfo)
+	taskImageScanData := ConvertTaskImageScanData(taskImageScanInfo, 1)
+	err := service.NewTaskImageScan(*taskImageScanData)
 	if err != nil {
 		return nil, err
 	}
-	return imageVulnInfo, nil
+	return taskImageScanInfo, nil
+}
+
+func GetTaskImageScan(imageRequestInfo *models.ImageRequestInfo) *[]models.TaskImageScanData {
+	taskImageScanData := service.GetTaskImageScan(*imageRequestInfo)
+	return taskImageScanData
+}
+
+func UpdateTaskImageScanDigest(jobImageAnalyzerInfo *models.JobImageAnalyzerInfo) {
+	// update task image digest
+	taskImageScanData := ConvertTaskImageScanDataByAnalyzerInfo(jobImageAnalyzerInfo)
+	service.UpdateTaskImageScanDigest(taskImageScanData.TaskID, taskImageScanData.ImageDigest)
 }

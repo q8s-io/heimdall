@@ -19,6 +19,20 @@ func CreateJobAnchoreInfo(jobImageAnalyzerInfo *models.JobImageAnalyzerInfo) *mo
 	return jobAnchoreInfo
 }
 
+func ConvertJobAnchoreInfo(jobAnchoreData *models.JobAnchoreData) *models.JobAnchoreInfo {
+	jobData := make([]map[string]string, 0)
+	_ = json.Unmarshal([]byte(jobAnchoreData.JobData), &jobData)
+	jobAnchoreInfo := new(models.JobAnchoreInfo)
+	jobAnchoreInfo.TaskID = jobAnchoreData.TaskID
+	jobAnchoreInfo.JobID = jobAnchoreData.JobID
+	jobAnchoreInfo.JobStatus = jobAnchoreData.JobStatus
+	jobAnchoreInfo.JobData = jobData
+	jobAnchoreInfo.ImageName = jobAnchoreData.ImageName
+	jobAnchoreInfo.ImageDigest = jobAnchoreData.ImageDigest
+	jobAnchoreInfo.CreateTime = jobAnchoreData.CreateTime
+	return jobAnchoreInfo
+}
+
 func ConvertJobAnchoreData(jobAnchoreInfo *models.JobAnchoreInfo, active int) *models.JobAnchoreData {
 	var jobData string
 	if len(jobAnchoreInfo.JobData) > 0 {

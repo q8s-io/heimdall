@@ -5,7 +5,16 @@ type ImageRequestInfo struct {
 	ImageDigest string `json:"image_digest"`
 }
 
-type ImageVulnInfo struct {
+type ImageVulnData struct {
+	TaskID      string
+	TaskStatus  string
+	ImageName   string
+	ImageDigest string
+	CreateTime  string
+	VulnData    []map[string]string
+}
+
+type TaskImageScanInfo struct {
 	TaskID      string `json:"task_id"`
 	TaskStatus  string `json:"task_status"`
 	ImageName   string `json:"image_name"`
@@ -13,11 +22,11 @@ type ImageVulnInfo struct {
 	CreateTime  string `json:"create_time"`
 }
 
-type ImageVulnData struct {
-	TaskID      string
-	TaskStatus  string
-	ImageName   string
-	ImageDigest string
-	CreateTime  string
+type TaskImageScanData struct {
+	TaskID      string `db:"task_id"`
+	TaskStatus  string `db:"task_status"`
+	ImageName   string `db:"image_name"`
+	ImageDigest string `db:"image_digest"`
+	CreateTime  string `db:"create_time"`
 	Active      int
 }

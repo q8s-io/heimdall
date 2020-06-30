@@ -18,6 +18,13 @@ func PreperJobAnchore(jobImageAnalyzerInfo *models.JobImageAnalyzerInfo) {
 	service.SendJobAnchoreMsg(jobAnchoreMsg)
 }
 
+func GetJobAnchore(taskID string) []map[string]string {
+	jobAnchoreDataList := service.GetJobAnchore(taskID)
+	jobAnchoreData := (*jobAnchoreDataList)[0]
+	jobAnchoreInfo := scanner.ConvertJobAnchoreInfo(&jobAnchoreData)
+	return jobAnchoreInfo.JobData
+}
+
 func UpdateJobAnchore(jobAnchoreInfo *models.JobAnchoreInfo) {
 	// update job anchore
 	jobAnchoreData := scanner.ConvertJobAnchoreData(jobAnchoreInfo, 1)

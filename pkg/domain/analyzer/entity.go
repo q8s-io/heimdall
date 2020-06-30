@@ -9,13 +9,13 @@ import (
 	"github.com/q8s-io/heimdall/pkg/models"
 )
 
-func CreateJobImageAnalyzerInfo(imageVulnInfo *models.ImageVulnInfo) *models.JobImageAnalyzerInfo {
+func CreateJobImageAnalyzerInfo(taskImageScanInfo *models.TaskImageScanInfo) *models.JobImageAnalyzerInfo {
 	jobImageAnalyzerInfo := new(models.JobImageAnalyzerInfo)
-	jobImageAnalyzerInfo.TaskID = imageVulnInfo.TaskID
+	jobImageAnalyzerInfo.TaskID = taskImageScanInfo.TaskID
 	jobImageAnalyzerInfo.JobID = distribution.GetUUID()
 	jobImageAnalyzerInfo.JobStatus = models.StatusRunning
-	jobImageAnalyzerInfo.ImageName = imageVulnInfo.ImageName
-	jobImageAnalyzerInfo.ImageDigest = imageVulnInfo.ImageDigest
+	jobImageAnalyzerInfo.ImageName = taskImageScanInfo.ImageName
+	jobImageAnalyzerInfo.ImageDigest = taskImageScanInfo.ImageDigest
 	jobImageAnalyzerInfo.ImageLayers = []string{}
 	jobImageAnalyzerInfo.CreateTime = time.Now().Format("2006-01-02 15:04:05")
 	return jobImageAnalyzerInfo

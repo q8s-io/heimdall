@@ -6,9 +6,9 @@ import (
 	"github.com/q8s-io/heimdall/pkg/service"
 )
 
-func PreperJobAnalyzer(imageVulnInfo *models.ImageVulnInfo) {
+func PreperJobAnalyzer(taskImageScanInfo *models.TaskImageScanInfo) {
 	// preper job analyzer
-	jobImageAnalyzerInfo := analyzer.CreateJobImageAnalyzerInfo(imageVulnInfo)
+	jobImageAnalyzerInfo := analyzer.CreateJobImageAnalyzerInfo(taskImageScanInfo)
 	jobImageAnalyzerData := analyzer.ConvertJobImageAnalyzerData(jobImageAnalyzerInfo, 1)
 	service.NewJobImageAnalyzer(*jobImageAnalyzerData)
 	// mark job status

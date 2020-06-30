@@ -30,7 +30,7 @@ func ConsumerMsg(topic string, queue chan *sarama.ConsumerMessage) {
 	}
 
 	for partition := range partitionList {
-		partitionConsumer, err := Consumer.ConsumePartition(topic, int32(partition), sarama.OffsetOldest)
+		partitionConsumer, err := Consumer.ConsumePartition(topic, int32(partition), sarama.OffsetNewest)
 		if err != nil {
 			log.Println(err)
 		}

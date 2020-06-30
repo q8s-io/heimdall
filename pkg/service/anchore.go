@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/Shopify/sarama"
 
@@ -15,6 +16,17 @@ func NewJobAnchore(jobAnchoreData models.JobAnchoreData) {
 	execSQL := fmt.Sprintf("INSERT INTO job_anchore (task_id, job_id, job_status, job_data, image_name, image_digest, create_time, active) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', %d)",
 		jobAnchoreData.TaskID, jobAnchoreData.JobID, jobAnchoreData.JobStatus, jobAnchoreData.JobData, jobAnchoreData.ImageName, jobAnchoreData.ImageDigest, jobAnchoreData.CreateTime, jobAnchoreData.Active)
 	_ = mysql.InserData(execSQL)
+}
+
+func GetJobAnchore(taskID string) *[]models.JobAnchoreData {
+	execSQL := fmt.Sprintf("SELECT task_id, job_id, job_status, job_data FROM job_anchore WHERE task_id='%s'",
+		taskID)
+	jobAnchoreDataList := new([]models.JobAnchoreData)
+	err := mysql.Client.Select(jobAnchoreDataList, execSQL)
+	if err != nil {
+		log.Println(err)
+	}
+	return jobAnchoreDataList
 }
 
 func UpdateJobAnchore(jobAnchoreData models.JobAnchoreData) {
