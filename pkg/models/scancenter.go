@@ -12,3 +12,12 @@ type ImageVulnInfo struct {
 	ImageDigest string `json:"image_digest"`
 	CreateTime  string `json:"create_time"`
 }
+
+type ImageVulnData struct {
+	TaskID      string
+	TaskStatus  string
+	ImageName   string
+	ImageDigest string
+	CreateTime  string
+	Active      int
+}

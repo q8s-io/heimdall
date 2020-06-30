@@ -2,7 +2,6 @@ package ginext
 
 import (
 	"bytes"
-	"io"
 	"io/ioutil"
 	"log"
 	"runtime"
@@ -10,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GinPanic(out io.Writer) gin.HandlerFunc {
+func GinPanic() gin.HandlerFunc {
 	data := make([]interface{}, 0)
 	return func(c *gin.Context) {
 		buf, _ := ioutil.ReadAll(c.Request.Body)
@@ -33,7 +32,7 @@ func GinPanic(out io.Writer) gin.HandlerFunc {
 				}
 				log.Printf("[Panic Info] %s", errStack)
 				// return
-				Sender(c, 1, "Data format error:", data)
+				Sender(c, 1, "programe error.", data)
 			}
 		}()
 		c.Next()

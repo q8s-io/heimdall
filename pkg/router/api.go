@@ -11,6 +11,10 @@ func RunAPI() {
 	{
 		// get image vuln result
 		images.POST("/vuln/", controller.GetImageVulnData)
+		// update image analyzer data
+		images.PUT("/analyzer/", controller.UpdateImageAnalyzerData)
+		// update anchore data
+		images.PUT("/anchore/", controller.UpdateAnchoreData)
 	}
 
 	_ = router.Run(":12001")

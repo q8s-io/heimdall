@@ -7,7 +7,7 @@ import (
 	"github.com/q8s-io/heimdall/pkg/models"
 )
 
-func ConvertTaskImageScan(imageRequestInfo *models.ImageRequestInfo) *models.ImageVulnInfo {
+func CreateImageVulnInfo(imageRequestInfo *models.ImageRequestInfo) *models.ImageVulnInfo {
 	imageVulnInfo := new(models.ImageVulnInfo)
 	imageVulnInfo.TaskID = distribution.GetUUID()
 	imageVulnInfo.TaskStatus = models.StatusRunning
@@ -17,21 +17,13 @@ func ConvertTaskImageScan(imageRequestInfo *models.ImageRequestInfo) *models.Ima
 	return imageVulnInfo
 }
 
-func ConvertJobImageAnalyzer(imageVulnInfo *models.ImageVulnInfo) *models.JobAnalyzerInfo {
-	jobAnalyzerInfo := new(models.JobAnalyzerInfo)
-	jobAnalyzerInfo.TaskID = imageVulnInfo.TaskID
-	jobAnalyzerInfo.JobID = distribution.GetUUID()
-	jobAnalyzerInfo.JobStatus = models.StatusRunning
-	jobAnalyzerInfo.ImageName = imageVulnInfo.ImageName
-	jobAnalyzerInfo.ImageDigest = imageVulnInfo.ImageDigest
-	jobAnalyzerInfo.CreateTime = time.Now().Format("2006-01-02 15:04:05")
-	return jobAnalyzerInfo
-}
-
-func ConvertImageAnalyzerMsg(jobAnalyzerInfo *models.JobAnalyzerInfo) *models.JobAnalyzerMsg {
-	jobAnalyzerMsg := new(models.JobAnalyzerMsg)
-	jobAnalyzerMsg.TaskID = jobAnalyzerInfo.TaskID
-	jobAnalyzerMsg.JobID = jobAnalyzerInfo.JobID
-	jobAnalyzerMsg.ImageName = jobAnalyzerInfo.ImageName
-	return jobAnalyzerMsg
+func ConvertImageVulnData(imageVulnInfo *models.ImageVulnInfo, active int) *models.ImageVulnData {
+	imageVulnData := new(models.ImageVulnData)
+	imageVulnData.TaskID = imageVulnInfo.TaskID
+	imageVulnData.TaskStatus = imageVulnInfo.TaskStatus
+	imageVulnData.ImageName = imageVulnInfo.ImageName
+	imageVulnData.ImageDigest = imageVulnInfo.ImageDigest
+	imageVulnData.CreateTime = imageVulnInfo.CreateTime
+	imageVulnData.Active = active
+	return imageVulnData
 }

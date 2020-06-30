@@ -23,7 +23,6 @@ func InitSyncProducer() {
 	if syncProducerErr != nil {
 		log.Println(syncProducerErr)
 	}
-	defer SyncProducer.Close()
 }
 
 func SyncProducerSendMsg(topic string, message sarama.Encoder) {
@@ -31,10 +30,9 @@ func SyncProducerSendMsg(topic string, message sarama.Encoder) {
 		Topic: topic,
 		Value: message,
 	}
-	partition, offset, err := SyncProducer.SendMessage(msg)
+	_, _, err := SyncProducer.SendMessage(msg)
 
 	if err != nil {
-		log.Println("Error publish ", err.Error())
+		log.Println("error publish ", err.Error())
 	}
-	log.Println("partition", partition, " offset", offset)
 }

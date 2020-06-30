@@ -1,9 +1,6 @@
 package router
 
 import (
-	"io"
-	"os"
-
 	"github.com/gin-gonic/gin"
 
 	"github.com/q8s-io/heimdall/pkg/controller"
@@ -11,11 +8,10 @@ import (
 )
 
 func RouteCustom() *gin.Engine {
-	var requestInput io.Writer = os.Stdout
 	router := gin.New()
 	router.Use(ginext.GinLogger())
 	router.Use(ginext.Cors())
-	router.Use(ginext.GinPanic(requestInput))
+	router.Use(ginext.GinPanic())
 
 	system := router.Group("/api/system")
 	{

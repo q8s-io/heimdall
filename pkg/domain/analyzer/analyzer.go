@@ -2,25 +2,32 @@ package analyzer
 
 import (
 	"encoding/json"
-	"log"
 
 	"github.com/Shopify/sarama"
 
+	"github.com/q8s-io/heimdall/pkg/infrastructure/net"
+	"github.com/q8s-io/heimdall/pkg/models"
 	"github.com/q8s-io/heimdall/pkg/service"
 )
 
 func JobAnalyzer() {
 	var queue chan *sarama.ConsumerMessage
-	queue = make(chan *sarama.ConsumerMessage, 100)
+	queue = make(chan *sarama.ConsumerMessage, 1000)
 
-	service.ConsumerImageAnalyzerMsg(queue)
-
+	// consumer msg from mq
+	service.ConsumerJobImageAnalyzerMsg(queue)
+	jobImageAnalyzerMsg := new(models.JobImageAnalyzerMsg)
 	for msg := range queue {
-		log.Println(msg.Topic, msg.Partition, msg.Offset)
-		msgInfo := make(map[string]interface{})
-		_ = json.Unmarshal(msg.Value, &msgInfo)
-		log.Println(msgInfo["cluster"], msgInfo["app"], msgInfo["controller_kind"], msgInfo["deployment"], msgInfo["container_name"], msgInfo["hostname"])
-		log.Println(msgInfo["log"])
+		_ = json.Unmarshal(msg.Value, &jobImageAnalyzerMsg)
+
+		// image analyzer
+		imageName := jobImageAnalyzerMsg.ImageName
+		digest, layers := ImageAnalyzer(imageName)
+		jobImageAnalyzerInfo := ConvertJobImageAnalyzerInfoByMsg(jobImageAnalyzerMsg, digest, layers)
+
+		// send data to scancenter
+		requestJSON, _ := json.Marshal(jobImageAnalyzerInfo)
+		_ = net.HTTPPUT(models.Config.ScanCenter.AnalyzerURL, string(requestJSON))
 	}
 
 	close(queue)

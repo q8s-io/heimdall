@@ -6,6 +6,7 @@ import (
 
 	"github.com/q8s-io/heimdall/pkg/domain/analyzer"
 	"github.com/q8s-io/heimdall/pkg/domain/process"
+	"github.com/q8s-io/heimdall/pkg/domain/scanner"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/kafka"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/mysql"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/redis"
@@ -46,12 +47,13 @@ func RunScanCenter() {
 }
 
 func RunAnalyzer() {
-	kafka.InitConsumer("analyzer")
+	kafka.InitConsumer()
 	analyzer.JobAnalyzer()
 }
 
 func RunScannerAnchore() {
-
+	kafka.InitConsumer()
+	scanner.JobAnchore()
 }
 
 func RunTool() {

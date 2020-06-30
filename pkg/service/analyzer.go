@@ -11,21 +11,26 @@ import (
 	"github.com/q8s-io/heimdall/pkg/models"
 )
 
-func NewImageAnalyzer(jobAnalyzerInfo models.JobAnalyzerInfo) error {
-	execSQL := fmt.Sprintf("INSERT INTO `job_analyzer` (`task_id`, `job_id`, `job_status`, `image_name`, `image_digest`, `create_time`) VALUES ('%s', '%s', '%s', '%s', '%s', '%s')",
-		jobAnalyzerInfo.TaskID, jobAnalyzerInfo.JobID, jobAnalyzerInfo.JobStatus, jobAnalyzerInfo.ImageName, jobAnalyzerInfo.ImageDigest, jobAnalyzerInfo.CreateTime)
-	err := mysql.InserData(execSQL)
-	return err
+func NewJobImageAnalyzer(jobImageAnalyzerData models.JobImageAnalyzerData) {
+	execSQL := fmt.Sprintf("INSERT INTO job_analyzer (task_id, job_id, job_status, image_name, image_digest, image_layers, create_time, active) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', %d)",
+		jobImageAnalyzerData.TaskID, jobImageAnalyzerData.JobID, jobImageAnalyzerData.JobStatus, jobImageAnalyzerData.ImageName, jobImageAnalyzerData.ImageDigest, jobImageAnalyzerData.ImageLayers, jobImageAnalyzerData.CreateTime, jobImageAnalyzerData.Active)
+	_ = mysql.InserData(execSQL)
 }
 
-func SetImageAnalyzerStatus(taskID, status string) {
+func UpdateJobImageAnalyzer(jobImageAnalyzerData models.JobImageAnalyzerData) {
+	execSQL := fmt.Sprintf("UPDATE job_analyzer SET job_status='%s', image_digest='%s', image_layers='%s' WHERE job_id='%s'",
+		jobImageAnalyzerData.JobStatus, jobImageAnalyzerData.ImageDigest, jobImageAnalyzerData.ImageLayers, jobImageAnalyzerData.JobID)
+	_ = mysql.InserData(execSQL)
+}
+
+func SetJobImageAnalyzerStatus(taskID, status string) {
 	redis.SetMap(taskID, "analyzer", status)
 }
 
-func SendImageAnalyzerMsg(jobAnalyzerMsg *models.JobAnalyzerMsg) {
-	kafka.SyncProducerSendMsg("analyzer", jobAnalyzerMsg)
+func SendJobImageAnalyzerMsg(jobImageAnalyzerMsg *models.JobImageAnalyzerMsg) {
+	kafka.SyncProducerSendMsg("analyzer", jobImageAnalyzerMsg)
 }
 
-func ConsumerImageAnalyzerMsg(queue chan *sarama.ConsumerMessage) {
-	go kafka.ConsumerMsg(queue)
+func ConsumerJobImageAnalyzerMsg(queue chan *sarama.ConsumerMessage) {
+	kafka.ConsumerMsg("analyzer", queue)
 }
