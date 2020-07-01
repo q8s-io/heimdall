@@ -11,7 +11,7 @@ import (
 var Client *redis.Client
 
 func Init() {
-	redisConfig := models.Config.Redis
+	redisConfig := entity.Config.Redis
 	Client = redis.NewClient(&redis.Options{
 		Addr:         redisConfig.Host + ":" + redisConfig.Port,
 		Password:     redisConfig.PassWord,

@@ -3,9 +3,12 @@ package scancenter
 import (
 	"github.com/q8s-io/heimdall/pkg/models"
 	"github.com/q8s-io/heimdall/pkg/service"
+	
+	"github.com/q8s-io/heimdall/pkg/entity"
+	"github.com/q8s-io/heimdall/pkg/persistence"
 )
 
-func JudgeTask(imageRequestInfo *models.ImageRequestInfo) (interface{}, error) {
+func JudgeTask(imageRequestInfo *entity.ImageRequestInfo) (interface{}, error) {
 	// get data by ImageName & ImageDigest
 	taskImageScanDataList := GetTaskImageScan(imageRequestInfo)
 	// if data is empty, run scan center
@@ -14,11 +17,11 @@ func JudgeTask(imageRequestInfo *models.ImageRequestInfo) (interface{}, error) {
 	}
 	taskImageScanData := (*taskImageScanDataList)[0]
 	// if status is running, return data
-	if taskImageScanData.TaskStatus == models.StatusRunning {
+	if taskImageScanData.TaskStatus == entity.StatusRunning {
 		return TaskImageScanMerger(&taskImageScanData)
 	}
 	// if status is succeed
-	if taskImageScanData.TaskStatus == models.StatusSucceed {
+	if taskImageScanData.TaskStatus == entity.StatusSucceed {
 		// if ImageDigest is empty, run scan center
 		if imageRequestInfo.ImageDigest == "" {
 			return TaskImageScanMerger(&taskImageScanData)
@@ -38,18 +41,18 @@ func JudgeTaskRotary(taskID string) {
 	// judge status
 	currentStatus := GetTaskCurrentStatus(taskID)
 	// mark task status
-	if currentStatus == models.StatusSucceed {
-		service.UpdateTaskImageScanStatus(taskID, models.StatusSucceed)
-		service.DeleteTask(taskID)
+	if currentStatus == entity.StatusSucceed {
+		persistence.UpdateTaskImageScanStatus(taskID, entity.StatusSucceed)
+		persistence.DeleteTask(taskID)
 	}
 }
 
 func GetTaskCurrentStatus(taskID string) string {
-	taskStatus := service.GetTaskStatus(taskID)
+	taskStatus := persistence.GetTaskStatus(taskID)
 	for _, v := range taskStatus {
 		if v != "succeed" {
 			return v
 		}
 	}
-	return models.StatusSucceed
+	return entity.StatusSucceed
 }

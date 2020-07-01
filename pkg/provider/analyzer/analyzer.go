@@ -15,8 +15,8 @@ func JobAnalyzer() {
 	queue = make(chan *sarama.ConsumerMessage, 1000)
 
 	// consumer msg from mq
-	service.ConsumerJobImageAnalyzerMsg(queue)
-	jobImageAnalyzerMsg := new(models.JobImageAnalyzerMsg)
+	persistence.ConsumerJobImageAnalyzerMsg(queue)
+	jobImageAnalyzerMsg := new(entity.JobImageAnalyzerMsg)
 	for msg := range queue {
 		_ = json.Unmarshal(msg.Value, &jobImageAnalyzerMsg)
 
@@ -27,7 +27,7 @@ func JobAnalyzer() {
 
 		// send data to scancenter
 		requestJSON, _ := json.Marshal(jobImageAnalyzerInfo)
-		_ = net.HTTPPUT(models.Config.ScanCenter.AnalyzerURL, string(requestJSON))
+		_ = net.HTTPPUT(entity.Config.ScanCenter.AnalyzerURL, string(requestJSON))
 	}
 
 	close(queue)

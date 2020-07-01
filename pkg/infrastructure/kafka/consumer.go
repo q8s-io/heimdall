@@ -14,7 +14,7 @@ var consumerErr interface{}
 func InitConsumer() {
 	config := sarama.NewConfig()
 
-	kafkaConfig := models.Config.Kafka
+	kafkaConfig := entity.Config.Kafka
 
 	Consumer, consumerErr = sarama.NewConsumer(kafkaConfig.BrokerList, config)
 	if consumerErr != nil {

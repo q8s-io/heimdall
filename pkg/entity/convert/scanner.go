@@ -1,4 +1,4 @@
-package scanner
+package convert
 
 import (
 	"encoding/json"
@@ -8,21 +8,21 @@ import (
 	"github.com/q8s-io/heimdall/pkg/models"
 )
 
-func CreateJobAnchoreInfo(jobImageAnalyzerInfo *models.JobImageAnalyzerInfo) *models.JobAnchoreInfo {
-	jobAnchoreInfo := new(models.JobAnchoreInfo)
+func CreateJobAnchoreInfo(jobImageAnalyzerInfo *entity.JobImageAnalyzerInfo) *entity.JobAnchoreInfo {
+	jobAnchoreInfo := new(entity.JobAnchoreInfo)
 	jobAnchoreInfo.TaskID = jobImageAnalyzerInfo.TaskID
 	jobAnchoreInfo.JobID = distribution.GetUUID()
-	jobAnchoreInfo.JobStatus = models.StatusRunning
+	jobAnchoreInfo.JobStatus = entity.StatusRunning
 	jobAnchoreInfo.ImageName = jobImageAnalyzerInfo.ImageName
 	jobAnchoreInfo.ImageDigest = jobImageAnalyzerInfo.ImageDigest
 	jobAnchoreInfo.CreateTime = time.Now().Format("2006-01-02 15:04:05")
 	return jobAnchoreInfo
 }
 
-func ConvertJobAnchoreInfo(jobAnchoreData *models.JobAnchoreData) *models.JobAnchoreInfo {
+func ConvertJobAnchoreInfo(jobAnchoreData *entity.JobAnchoreData) *entity.JobAnchoreInfo {
 	jobData := make([]map[string]string, 0)
 	_ = json.Unmarshal([]byte(jobAnchoreData.JobData), &jobData)
-	jobAnchoreInfo := new(models.JobAnchoreInfo)
+	jobAnchoreInfo := new(entity.JobAnchoreInfo)
 	jobAnchoreInfo.TaskID = jobAnchoreData.TaskID
 	jobAnchoreInfo.JobID = jobAnchoreData.JobID
 	jobAnchoreInfo.JobStatus = jobAnchoreData.JobStatus
@@ -33,13 +33,13 @@ func ConvertJobAnchoreInfo(jobAnchoreData *models.JobAnchoreData) *models.JobAnc
 	return jobAnchoreInfo
 }
 
-func ConvertJobAnchoreData(jobAnchoreInfo *models.JobAnchoreInfo, active int) *models.JobAnchoreData {
+func ConvertJobAnchoreData(jobAnchoreInfo *entity.JobAnchoreInfo, active int) *entity.JobAnchoreData {
 	var jobData string
 	if len(jobAnchoreInfo.JobData) > 0 {
 		jobDataByte, _ := json.Marshal(jobAnchoreInfo.JobData)
 		jobData = string(jobDataByte)
 	}
-	jobAnchoreData := new(models.JobAnchoreData)
+	jobAnchoreData := new(entity.JobAnchoreData)
 	jobAnchoreData.TaskID = jobAnchoreInfo.TaskID
 	jobAnchoreData.JobID = jobAnchoreInfo.JobID
 	jobAnchoreData.JobStatus = jobAnchoreInfo.JobStatus
@@ -51,8 +51,8 @@ func ConvertJobAnchoreData(jobAnchoreInfo *models.JobAnchoreInfo, active int) *m
 	return jobAnchoreData
 }
 
-func ConvertJobAnchoreMsg(jobAnchoreInfo *models.JobAnchoreInfo) *models.JobAnchoreMsg {
-	jobAnchoreMsg := new(models.JobAnchoreMsg)
+func ConvertJobAnchoreMsg(jobAnchoreInfo *entity.JobAnchoreInfo) *entity.JobAnchoreMsg {
+	jobAnchoreMsg := new(entity.JobAnchoreMsg)
 	jobAnchoreMsg.TaskID = jobAnchoreInfo.TaskID
 	jobAnchoreMsg.JobID = jobAnchoreInfo.JobID
 	jobAnchoreMsg.ImageName = jobAnchoreInfo.ImageName
@@ -60,8 +60,8 @@ func ConvertJobAnchoreMsg(jobAnchoreInfo *models.JobAnchoreInfo) *models.JobAnch
 	return jobAnchoreMsg
 }
 
-func CreateAnchoreRequestInfo(jobAnchoreMsg *models.JobAnchoreMsg) *models.AnchoreRequestInfo {
-	anchoreRequestInfo := new(models.AnchoreRequestInfo)
+func CreateAnchoreRequestInfo(jobAnchoreMsg *entity.JobAnchoreMsg) *entity.AnchoreRequestInfo {
+	anchoreRequestInfo := new(entity.AnchoreRequestInfo)
 	anchoreRequestInfo.ImageName = jobAnchoreMsg.ImageName
 	anchoreRequestInfo.ImageDigest = jobAnchoreMsg.ImageDigest
 	anchoreRequestInfo.CreateTime = time.Now().Format("2006-01-02T15:04:05Z")

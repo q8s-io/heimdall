@@ -1,4 +1,4 @@
-package analyzer
+package docker
 
 import (
 	"context"
@@ -11,10 +11,12 @@ import (
 	"github.com/docker/docker/client"
 
 	"github.com/q8s-io/heimdall/pkg/models"
+	
+	"github.com/q8s-io/heimdall/pkg/entity"
 )
 
 func ImageAnalyzer(imageName string) ([]string, []string) {
-	dockerConfig := models.Config.Docker
+	dockerConfig := entity.Config.Docker
 
 	// docker client
 	cli, cerr := client.NewClient(dockerConfig.Host, dockerConfig.Version, nil, nil)

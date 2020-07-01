@@ -1,4 +1,4 @@
-package service
+package scancenter
 
 import (
 	"fmt"
@@ -9,14 +9,14 @@ import (
 	"github.com/q8s-io/heimdall/pkg/models"
 )
 
-func NewTaskImageScan(taskImageScanData models.TaskImageScanData) error {
+func NewTaskImageScan(taskImageScanData entity.TaskImageScanData) error {
 	execSQL := fmt.Sprintf("INSERT INTO image_vuln (task_id, task_status, image_name, image_digest, create_time, active) VALUES ('%s', '%s', '%s', '%s', '%s', %d)",
 		taskImageScanData.TaskID, taskImageScanData.TaskStatus, taskImageScanData.ImageName, taskImageScanData.ImageDigest, taskImageScanData.CreateTime, taskImageScanData.Active)
 	err := mysql.InserData(execSQL)
 	return err
 }
 
-func GetTaskImageScan(imageRequestInfo models.ImageRequestInfo) *[]models.TaskImageScanData {
+func GetTaskImageScan(imageRequestInfo entity.ImageRequestInfo) *[]entity.TaskImageScanData {
 	var execSQL string
 	if imageRequestInfo.ImageDigest == "" {
 		execSQL = fmt.Sprintf("SELECT task_id, task_status, image_name, image_digest, create_time FROM image_vuln WHERE active=1 AND image_name='%s'",
@@ -25,7 +25,7 @@ func GetTaskImageScan(imageRequestInfo models.ImageRequestInfo) *[]models.TaskIm
 		execSQL = fmt.Sprintf("SELECT task_id, task_status, image_name, image_digest, create_time FROM image_vuln WHERE active=1 AND image_name='%s' AND image_digest='%s'",
 			imageRequestInfo.ImageName, imageRequestInfo.ImageDigest)
 	}
-	taskImageScanDataList := new([]models.TaskImageScanData)
+	taskImageScanDataList := new([]entity.TaskImageScanData)
 	err := mysql.Client.Select(taskImageScanDataList, execSQL)
 	if err != nil {
 		log.Println(err)

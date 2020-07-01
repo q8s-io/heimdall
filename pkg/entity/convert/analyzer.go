@@ -1,19 +1,20 @@
-package analyzer
+package convert
 
 import (
 	"encoding/json"
 	"strings"
 	"time"
-
+	
+	"github.com/q8s-io/heimdall/pkg/entity"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/distribution"
 	"github.com/q8s-io/heimdall/pkg/models"
 )
 
-func CreateJobImageAnalyzerInfo(taskImageScanInfo *models.TaskImageScanInfo) *models.JobImageAnalyzerInfo {
-	jobImageAnalyzerInfo := new(models.JobImageAnalyzerInfo)
+func CreateJobImageAnalyzerInfo(taskImageScanInfo *entity.TaskImageScanInfo) *entity.JobImageAnalyzerInfo {
+	jobImageAnalyzerInfo := new(entity.JobImageAnalyzerInfo)
 	jobImageAnalyzerInfo.TaskID = taskImageScanInfo.TaskID
 	jobImageAnalyzerInfo.JobID = distribution.GetUUID()
-	jobImageAnalyzerInfo.JobStatus = models.StatusRunning
+	jobImageAnalyzerInfo.JobStatus = entity.StatusRunning
 	jobImageAnalyzerInfo.ImageName = taskImageScanInfo.ImageName
 	jobImageAnalyzerInfo.ImageDigest = taskImageScanInfo.ImageDigest
 	jobImageAnalyzerInfo.ImageLayers = []string{}
@@ -21,24 +22,25 @@ func CreateJobImageAnalyzerInfo(taskImageScanInfo *models.TaskImageScanInfo) *mo
 	return jobImageAnalyzerInfo
 }
 
-func ConvertJobImageAnalyzerInfoByMsg(jobImageAnalyzerMsg *models.JobImageAnalyzerMsg, digest, layers []string) *models.JobImageAnalyzerInfo {
+func ConvertJobImageAnalyzerInfoByMsg(jobImageAnalyzerMsg *entity.JobImageAnalyzerMsg, digest, layers []string) *entity.JobImageAnalyzerInfo {
 	digestList := strings.Split(digest[len(digest)-1], "@")
-	jobImageAnalyzerInfo := new(models.JobImageAnalyzerInfo)
+	jobImageAnalyzerInfo := new(entity.JobImageAnalyzerInfo)
 	jobImageAnalyzerInfo.TaskID = jobImageAnalyzerMsg.TaskID
 	jobImageAnalyzerInfo.JobID = jobImageAnalyzerMsg.JobID
-	jobImageAnalyzerInfo.JobStatus = models.StatusSucceed
+	jobImageAnalyzerInfo.JobStatus = entity.StatusSucceed
 	jobImageAnalyzerInfo.ImageName = jobImageAnalyzerMsg.ImageName
 	jobImageAnalyzerInfo.ImageDigest = digestList[len(digestList)-1]
 	jobImageAnalyzerInfo.ImageLayers = layers
 	return jobImageAnalyzerInfo
 }
-func ConvertJobImageAnalyzerData(jobImageAnalyzerInfo *models.JobImageAnalyzerInfo, active int) *models.JobImageAnalyzerData {
+
+func ConvertJobImageAnalyzerData(jobImageAnalyzerInfo *entity.JobImageAnalyzerInfo, active int) *entity.JobImageAnalyzerData {
 	var layers string
 	if len(jobImageAnalyzerInfo.ImageLayers) > 0 {
 		layersByte, _ := json.Marshal(jobImageAnalyzerInfo.ImageLayers)
 		layers = string(layersByte)
 	}
-	jobAnalyzerData := new(models.JobImageAnalyzerData)
+	jobAnalyzerData := new(entity.JobImageAnalyzerData)
 	jobAnalyzerData.TaskID = jobImageAnalyzerInfo.TaskID
 	jobAnalyzerData.JobID = jobImageAnalyzerInfo.JobID
 	jobAnalyzerData.JobStatus = jobImageAnalyzerInfo.JobStatus
@@ -50,8 +52,8 @@ func ConvertJobImageAnalyzerData(jobImageAnalyzerInfo *models.JobImageAnalyzerIn
 	return jobAnalyzerData
 }
 
-func ConvertJobImageAnalyzerMsg(jobImageAnalyzerInfo *models.JobImageAnalyzerInfo) *models.JobImageAnalyzerMsg {
-	jobImageAnalyzerMsg := new(models.JobImageAnalyzerMsg)
+func ConvertJobImageAnalyzerMsg(jobImageAnalyzerInfo *entity.JobImageAnalyzerInfo) *entity.JobImageAnalyzerMsg {
+	jobImageAnalyzerMsg := new(entity.JobImageAnalyzerMsg)
 	jobImageAnalyzerMsg.TaskID = jobImageAnalyzerInfo.TaskID
 	jobImageAnalyzerMsg.JobID = jobImageAnalyzerInfo.JobID
 	jobImageAnalyzerMsg.ImageName = jobImageAnalyzerInfo.ImageName

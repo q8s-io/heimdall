@@ -11,7 +11,7 @@ import (
 
 func Init(confPath string) {
 	// init runtime
-	if _, err := toml.DecodeFile(confPath, &models.Config); err != nil {
+	if _, err := toml.DecodeFile(confPath, &entity.Config); err != nil {
 		log.Println(err)
 		return
 	}

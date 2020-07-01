@@ -2,26 +2,29 @@ package scancenter
 
 import (
 	"github.com/q8s-io/heimdall/pkg/domain/analyzer"
+	"github.com/q8s-io/heimdall/pkg/entity"
+	"github.com/q8s-io/heimdall/pkg/persistence"
+	
 	"github.com/q8s-io/heimdall/pkg/models"
 	"github.com/q8s-io/heimdall/pkg/service"
 )
 
-func PreperJobAnalyzer(taskImageScanInfo *models.TaskImageScanInfo) {
+func PreperJobAnalyzer(taskImageScanInfo *entity.TaskImageScanInfo) {
 	// preper job analyzer
 	jobImageAnalyzerInfo := analyzer.CreateJobImageAnalyzerInfo(taskImageScanInfo)
 	jobImageAnalyzerData := analyzer.ConvertJobImageAnalyzerData(jobImageAnalyzerInfo, 1)
-	service.NewJobImageAnalyzer(*jobImageAnalyzerData)
+	persistence.NewJobImageAnalyzer(*jobImageAnalyzerData)
 	// mark job status
-	service.SetJobImageAnalyzerStatus(jobImageAnalyzerInfo.TaskID, models.StatusRunning)
+	persistence.SetJobImageAnalyzerStatus(jobImageAnalyzerInfo.TaskID, entity.StatusRunning)
 	// send msg to mq
 	jobImageAnalyzerMsg := analyzer.ConvertJobImageAnalyzerMsg(jobImageAnalyzerInfo)
-	service.SendJobImageAnalyzerMsg(jobImageAnalyzerMsg)
+	persistence.SendJobImageAnalyzerMsg(jobImageAnalyzerMsg)
 }
 
-func UpdateJobImageAnalyzer(jobImageAnalyzerInfo *models.JobImageAnalyzerInfo) {
+func UpdateJobImageAnalyzer(jobImageAnalyzerInfo *entity.JobImageAnalyzerInfo) {
 	// update job analyzer
 	jobImageAnalyzerData := analyzer.ConvertJobImageAnalyzerData(jobImageAnalyzerInfo, 1)
-	service.UpdateJobImageAnalyzer(*jobImageAnalyzerData)
+	persistence.UpdateJobImageAnalyzer(*jobImageAnalyzerData)
 	// mark job status
-	service.SetJobImageAnalyzerStatus(jobImageAnalyzerData.TaskID, models.StatusSucceed)
+	persistence.SetJobImageAnalyzerStatus(jobImageAnalyzerData.TaskID, entity.StatusSucceed)
 }

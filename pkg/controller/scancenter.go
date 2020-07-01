@@ -9,7 +9,7 @@ import (
 )
 
 func GetImageVulnData(c *gin.Context) {
-	imageRequestInfo := new(models.ImageRequestInfo)
+	imageRequestInfo := new(entity.ImageRequestInfo)
 	if err := c.ShouldBind(&imageRequestInfo); err != nil {
 		return
 	}
@@ -26,7 +26,7 @@ func GetImageVulnData(c *gin.Context) {
 }
 
 func UpdateImageAnalyzerData(c *gin.Context) {
-	jobImageAnalyzerInfo := new(models.JobImageAnalyzerInfo)
+	jobImageAnalyzerInfo := new(entity.JobImageAnalyzerInfo)
 	if err := c.ShouldBind(&jobImageAnalyzerInfo); err != nil {
 		return
 	}
@@ -38,7 +38,7 @@ func UpdateImageAnalyzerData(c *gin.Context) {
 }
 
 func UpdateAnchoreData(c *gin.Context) {
-	jobAnchoreInfo := new(models.JobAnchoreInfo)
+	jobAnchoreInfo := new(entity.JobAnchoreInfo)
 	if err := c.ShouldBind(&jobAnchoreInfo); err != nil {
 		return
 	}

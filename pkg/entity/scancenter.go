@@ -1,4 +1,4 @@
-package models
+package entity
 
 type ImageRequestInfo struct {
 	ImageName   string `json:"image_name"`

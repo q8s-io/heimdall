@@ -17,7 +17,7 @@ func InitSyncProducer() {
 	config.Producer.RequiredAcks = sarama.WaitForAll
 	config.Producer.Return.Successes = true
 
-	kafkaConfig := models.Config.Kafka
+	kafkaConfig := entity.Config.Kafka
 
 	SyncProducer, syncProducerErr = sarama.NewSyncProducer(kafkaConfig.BrokerList, config)
 	if syncProducerErr != nil {
