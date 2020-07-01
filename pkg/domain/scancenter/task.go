@@ -22,7 +22,10 @@ func GetTaskImageScan(imageRequestInfo *models.ImageRequestInfo) *[]models.TaskI
 }
 
 func UpdateTaskImageScanDigest(jobImageAnalyzerInfo *models.JobImageAnalyzerInfo) {
-	// update task image digest
 	taskImageScanData := ConvertTaskImageScanDataByAnalyzerInfo(jobImageAnalyzerInfo)
 	service.UpdateTaskImageScanDigest(taskImageScanData.TaskID, taskImageScanData.ImageDigest)
+}
+
+func UpdateTaskImageScanActive(imageRequestInfo *models.ImageRequestInfo) {
+	service.UpdateTaskImageScanActive(imageRequestInfo.ImageName, 0)
 }

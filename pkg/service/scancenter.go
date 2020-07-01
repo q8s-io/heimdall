@@ -45,6 +45,12 @@ func UpdateTaskImageScanStatus(taskID, status string) {
 	_ = mysql.InserData(execSQL)
 }
 
+func UpdateTaskImageScanActive(imageName string, active int) {
+	execSQL := fmt.Sprintf("UPDATE image_vuln SET active=%d WHERE image_name='%s'",
+		active, imageName)
+	_ = mysql.InserData(execSQL)
+}
+
 func GetTaskStatus(taskID string) map[string]string {
 	return redis.GetMapAll(taskID)
 }

@@ -6,7 +6,7 @@ import (
 )
 
 func JudgeTask(imageRequestInfo *models.ImageRequestInfo) (interface{}, error) {
-	// get data by imageName & imageDigest
+	// get data by ImageName & ImageDigest
 	taskImageScanDataList := GetTaskImageScan(imageRequestInfo)
 	// if data is empty, run scan center
 	if len(*taskImageScanDataList) == 0 {
@@ -19,16 +19,15 @@ func JudgeTask(imageRequestInfo *models.ImageRequestInfo) (interface{}, error) {
 	}
 	// if status is succeed
 	if taskImageScanData.TaskStatus == models.StatusSucceed {
-		// if imageDigest is empty, return data
+		// if ImageDigest is empty, run scan center
 		if imageRequestInfo.ImageDigest == "" {
 			return TaskImageScanMerger(&taskImageScanData)
-			// if imageDigest is db.imageDigest, return data
+			// if ImageDigest is db.ImageDigest, return data
 		} else if imageRequestInfo.ImageDigest == taskImageScanData.ImageDigest {
 			return TaskImageScanMerger(&taskImageScanData)
-			// if imageDigest not is db.imageDigest, mark old data, run scan center
+			// if ImageDigest not is db.ImageDigest, mark old data, run scan center
 		} else {
-			// mark old data
-			//
+			UpdateTaskImageScanActive(imageRequestInfo)
 			return TaskImageScanRotaryCreate(imageRequestInfo)
 		}
 	}
