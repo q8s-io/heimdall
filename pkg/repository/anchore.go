@@ -1,11 +1,12 @@
-package anchore
+package repository
 
 import (
 	"fmt"
 	"log"
 
 	"github.com/Shopify/sarama"
-
+	
+	"github.com/q8s-io/heimdall/pkg/entity"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/kafka"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/mysql"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/redis"

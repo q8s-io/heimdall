@@ -1,4 +1,4 @@
-package scancenter
+package repository
 
 import (
 	"fmt"
