@@ -3,24 +3,20 @@ package analyzer
 import (
 	"encoding/json"
 
-	"github.com/Shopify/sarama"
-
 	"github.com/q8s-io/heimdall/pkg/entity/convert"
 	"github.com/q8s-io/heimdall/pkg/entity/model"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/docker"
+	"github.com/q8s-io/heimdall/pkg/infrastructure/kafka"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/net"
 	"github.com/q8s-io/heimdall/pkg/repository"
 )
 
 func JobAnalyzer() {
-	var queue chan *sarama.ConsumerMessage
-	queue = make(chan *sarama.ConsumerMessage, 1000)
-
 	// consumer msg from mq
-	repository.ConsumerMsgJobImageAnalyzer(queue)
+	repository.ConsumerMsgJobImageAnalyzer()
 	jobScannerMsg := new(model.JobScannerMsg)
-	for msg := range queue {
-		_ = json.Unmarshal(msg.Value, &jobScannerMsg)
+	for msg := range kafka.Queue {
+		_ = json.Unmarshal(msg, &jobScannerMsg)
 
 		// image analyzer
 		imageName := jobScannerMsg.ImageName
@@ -31,6 +27,4 @@ func JobAnalyzer() {
 		requestJSON, _ := json.Marshal(jobImageAnalyzerInfo)
 		_ = net.HTTPPUT(model.Config.ScanCenter.AnalyzerURL, string(requestJSON))
 	}
-
-	close(queue)
 }

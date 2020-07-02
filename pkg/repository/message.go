@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"github.com/Shopify/sarama"
-	
 	"github.com/q8s-io/heimdall/pkg/entity/model"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/kafka"
 )
@@ -15,10 +13,10 @@ func SendMsgJobAnchore(jobScannerMsg *model.JobScannerMsg) {
 	kafka.SyncProducerSendMsg("anchore", jobScannerMsg)
 }
 
-func ConsumerMsgJobImageAnalyzer(queue chan *sarama.ConsumerMessage) {
-	kafka.ConsumerMsg("analyzer", queue)
+func ConsumerMsgJobImageAnalyzer() {
+	go kafka.ConsumerMsg("analyzer")
 }
 
-func ConsumerMsgJobAnchore(queue chan *sarama.ConsumerMessage) {
-	kafka.ConsumerMsg("anchore", queue)
+func ConsumerMsgJobAnchore() {
+	go kafka.ConsumerMsg("anchore")
 }

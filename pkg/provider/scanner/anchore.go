@@ -4,23 +4,19 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/Shopify/sarama"
-
 	"github.com/q8s-io/heimdall/pkg/entity/convert"
 	"github.com/q8s-io/heimdall/pkg/entity/model"
+	"github.com/q8s-io/heimdall/pkg/infrastructure/kafka"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/net"
 	"github.com/q8s-io/heimdall/pkg/repository"
 )
 
 func JobAnchore() {
-	var queue chan *sarama.ConsumerMessage
-	queue = make(chan *sarama.ConsumerMessage, 1000)
-
 	// consumer msg from mq
-	repository.ConsumerMsgJobAnchore(queue)
+	repository.ConsumerMsgJobAnchore()
 	jobScannerMsg := new(model.JobScannerMsg)
-	for msg := range queue {
-		_ = json.Unmarshal(msg.Value, &jobScannerMsg)
+	for msg := range kafka.Queue {
+		_ = json.Unmarshal(msg, &jobScannerMsg)
 
 		// preper anchore data
 		anchoreRequestInfo := convert.AnchoreRequestInfo(jobScannerMsg)
@@ -29,8 +25,8 @@ func JobAnchore() {
 		TriggerAnchoreScan(anchoreRequestInfo)
 
 		// get anchore scan data
-		vulnURL := model.Config.Anchore.AnchoreURL + "/v1/images/" + anchoreRequestInfo.ImageDigest + "/vuln/all"
-		vulnData := AnchoreGET(vulnURL)
+		vulnRequestURL := model.Config.Anchore.AnchoreURL + "/v1/images/" + anchoreRequestInfo.ImageDigest + "/vuln/all"
+		vulnData := AnchoreGET(vulnRequestURL)
 
 		// preper anchore scan result data
 		jobAnchoreInfo := PreperAnchoreScanResult(jobScannerMsg, vulnData)
@@ -39,32 +35,30 @@ func JobAnchore() {
 		requestJSON, _ := json.Marshal(jobAnchoreInfo)
 		_ = net.HTTPPUT(model.Config.ScanCenter.AnchoreURL, string(requestJSON))
 	}
-
-	close(queue)
 }
 
 func TriggerAnchoreScan(anchoreRequestInfo *model.AnchoreRequestInfo) {
 	triggerRequest, _ := json.Marshal(anchoreRequestInfo)
 	triggerURL := model.Config.Anchore.AnchoreURL + "/v1/images"
-RETYR:
+RETRY:
 	anchoreData := AnchorePOST(triggerURL, string(triggerRequest))
 	analysisStatus := anchoreData[0]["analysis_status"].(string)
 	if analysisStatus != "analyzed" {
 		time.Sleep(3 * time.Second)
-		goto RETYR
+		goto RETRY
 	}
 }
 
 func PreperAnchoreScanResult(jobScannerMsg *model.JobScannerMsg, vulnData map[string]interface{}) *model.JobScannerInfo {
 	var cveList []map[string]string
 	for _, vulnInfo := range vulnData["vulnerabilities"].([]interface{}) {
-		anchoreScanInfo := make(map[string]string)
-		anchoreScanInfo["package_full_nale"] = vulnInfo.(map[string]interface{})["package"].(string)
-		anchoreScanInfo["package_name"] = vulnInfo.(map[string]interface{})["package_name"].(string)
-		anchoreScanInfo["package_version"] = vulnInfo.(map[string]interface{})["package_version"].(string)
-		anchoreScanInfo["cve"] = vulnInfo.(map[string]interface{})["vuln"].(string)
-		anchoreScanInfo["cve_url"] = vulnInfo.(map[string]interface{})["url"].(string)
-		cveList = append(cveList, anchoreScanInfo)
+		cve := make(map[string]string)
+		cve["package_full_nale"] = vulnInfo.(map[string]interface{})["package"].(string)
+		cve["package_name"] = vulnInfo.(map[string]interface{})["package_name"].(string)
+		cve["package_version"] = vulnInfo.(map[string]interface{})["package_version"].(string)
+		cve["cve"] = vulnInfo.(map[string]interface{})["vuln"].(string)
+		cve["cve_url"] = vulnInfo.(map[string]interface{})["url"].(string)
+		cveList = append(cveList, cve)
 	}
 	jobScannerInfo := new(model.JobScannerInfo)
 	jobScannerInfo.TaskID = jobScannerMsg.TaskID
