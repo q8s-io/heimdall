@@ -1,37 +1,37 @@
 package scancenter
 
 import (
-	"github.com/q8s-io/heimdall/pkg/domain/scanner"
-	"github.com/q8s-io/heimdall/pkg/entity"
-	"github.com/q8s-io/heimdall/pkg/persistence"
-	
-	"github.com/q8s-io/heimdall/pkg/models"
-	"github.com/q8s-io/heimdall/pkg/service"
+	"github.com/q8s-io/heimdall/pkg/entity/convert"
+	"github.com/q8s-io/heimdall/pkg/entity/model"
+	"github.com/q8s-io/heimdall/pkg/repository"
 )
 
-func PreperJobAnchore(jobImageAnalyzerInfo *entity.JobImageAnalyzerInfo) {
+func PreperJobAnchore(jobImageAnalyzerInfo *model.JobImageAnalyzerInfo) {
 	// preper job scanner anchore
-	jobAnchoreInfo := scanner.CreateJobAnchoreInfo(jobImageAnalyzerInfo)
-	jobAnchoreData := scanner.ConvertJobAnchoreData(jobAnchoreInfo, 1)
-	persistence.NewJobAnchore(*jobAnchoreData)
+	jobAnchoreInfo := convert.JobScannerInfoByAnalyzerInfo(jobImageAnalyzerInfo)
+	jobAnchore := convert.JobScanner(jobAnchoreInfo, 1)
+	repository.NewJobAnchore(*jobAnchore)
 	// mark job status
-	persistence.SetJobAnchoreStatus(jobAnchoreInfo.TaskID, entity.StatusRunning)
+	repository.SetJobAnchoreStatus(jobAnchoreInfo.TaskID, model.StatusRunning)
 	// send msg to mq
-	jobAnchoreMsg := scanner.ConvertJobAnchoreMsg(jobAnchoreInfo)
-	persistence.SendJobAnchoreMsg(jobAnchoreMsg)
+	jobAnchoreMsg := convert.JobScannerMsg(jobAnchoreInfo.TaskID, jobAnchoreInfo.JobID, jobAnchoreInfo.ImageName, jobAnchoreInfo.ImageDigest)
+	repository.SendMsgJobAnchore(jobAnchoreMsg)
 }
 
 func GetJobAnchore(taskID string) []map[string]string {
-	jobAnchoreDataList := persistence.GetJobAnchore(taskID)
-	jobAnchoreData := (*jobAnchoreDataList)[0]
-	jobAnchoreInfo := scanner.ConvertJobAnchoreInfo(&jobAnchoreData)
+	jobAnchoreList := repository.GetJobAnchore(taskID)
+	if len(*jobAnchoreList) == 0 {
+		return make([]map[string]string, 0)
+	}
+	jobAnchore := (*jobAnchoreList)[0]
+	jobAnchoreInfo := convert.JobScannerInfo(&jobAnchore)
 	return jobAnchoreInfo.JobData
 }
 
-func UpdateJobAnchore(jobAnchoreInfo *entity.JobAnchoreInfo) {
+func UpdateJobAnchore(jobScannerInfo *model.JobScannerInfo) {
 	// update job anchore
-	jobAnchoreData := scanner.ConvertJobAnchoreData(jobAnchoreInfo, 1)
-	persistence.UpdateJobAnchore(*jobAnchoreData)
+	jobAnchore := convert.JobScanner(jobScannerInfo, 1)
+	repository.UpdateJobAnchore(*jobAnchore)
 	// mark job status
-	persistence.SetJobAnchoreStatus(jobAnchoreData.TaskID, entity.StatusSucceed)
+	repository.SetJobAnchoreStatus(jobAnchore.TaskID, model.StatusSucceed)
 }

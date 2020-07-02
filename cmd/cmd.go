@@ -4,12 +4,12 @@ import (
 	"flag"
 	"log"
 
-	"github.com/q8s-io/heimdall/pkg/domain/analyzer"
-	"github.com/q8s-io/heimdall/pkg/domain/process"
-	"github.com/q8s-io/heimdall/pkg/domain/scanner"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/kafka"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/mysql"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/redis"
+	"github.com/q8s-io/heimdall/pkg/provider/analyzer"
+	"github.com/q8s-io/heimdall/pkg/provider/process"
+	"github.com/q8s-io/heimdall/pkg/provider/scanner"
 	"github.com/q8s-io/heimdall/pkg/router"
 )
 

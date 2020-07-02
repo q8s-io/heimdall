@@ -1,4 +1,4 @@
-package entity
+package model
 
 const (
 	StatusRunning string = "running"

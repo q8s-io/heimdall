@@ -8,12 +8,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/q8s-io/heimdall/pkg/models"
+	"github.com/q8s-io/heimdall/pkg/entity/model"
 )
 
 func AnchoreGET(reqURL string) map[string]interface{} {
 	req, _ := http.NewRequest("GET", reqURL, nil)
-	req.SetBasicAuth(entity.Config.Anchore.UserName, entity.Config.Anchore.PassWord)
+	req.SetBasicAuth(model.Config.Anchore.UserName, model.Config.Anchore.PassWord)
 	c := &http.Client{
 		Timeout: 10 * time.Second,
 	}
@@ -35,7 +35,7 @@ func AnchoreGET(reqURL string) map[string]interface{} {
 func AnchorePOST(reqURL, reqData string) []map[string]interface{} {
 	req, _ := http.NewRequest("POST", reqURL, strings.NewReader(reqData))
 	req.Header.Add("Content-Type", "application/json")
-	req.SetBasicAuth(entity.Config.Anchore.UserName, entity.Config.Anchore.PassWord)
+	req.SetBasicAuth(model.Config.Anchore.UserName, model.Config.Anchore.PassWord)
 	c := &http.Client{
 		Timeout: 10 * time.Second,
 	}

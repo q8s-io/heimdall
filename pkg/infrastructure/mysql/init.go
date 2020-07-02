@@ -7,14 +7,14 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 
-	"github.com/q8s-io/heimdall/pkg/models"
+	"github.com/q8s-io/heimdall/pkg/entity/model"
 )
 
 var Client *sqlx.DB
 var connErr interface{}
 
 func Init() {
-	mysqlConfig := entity.Config.MySQL
+	mysqlConfig := model.Config.MySQL
 	connInfo := mysqlConfig.UserName + ":" + mysqlConfig.PassWord + "@tcp(" + mysqlConfig.Host + ":" + mysqlConfig.Port + ")/" + mysqlConfig.DB + "?charset=utf8&parseTime=True&loc=Local"
 
 	Client, connErr = sqlx.Open("mysql", connInfo)

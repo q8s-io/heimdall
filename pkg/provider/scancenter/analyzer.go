@@ -1,30 +1,27 @@
 package scancenter
 
 import (
-	"github.com/q8s-io/heimdall/pkg/domain/analyzer"
-	"github.com/q8s-io/heimdall/pkg/entity"
-	"github.com/q8s-io/heimdall/pkg/persistence"
-	
-	"github.com/q8s-io/heimdall/pkg/models"
-	"github.com/q8s-io/heimdall/pkg/service"
+	"github.com/q8s-io/heimdall/pkg/entity/convert"
+	"github.com/q8s-io/heimdall/pkg/entity/model"
+	"github.com/q8s-io/heimdall/pkg/repository"
 )
 
-func PreperJobAnalyzer(taskImageScanInfo *entity.TaskImageScanInfo) {
+func PreperJobAnalyzer(taskImageScanInfo *model.TaskImageScanInfo) {
 	// preper job analyzer
-	jobImageAnalyzerInfo := analyzer.CreateJobImageAnalyzerInfo(taskImageScanInfo)
-	jobImageAnalyzerData := analyzer.ConvertJobImageAnalyzerData(jobImageAnalyzerInfo, 1)
-	persistence.NewJobImageAnalyzer(*jobImageAnalyzerData)
+	jobImageAnalyzerInfo := convert.JobImageAnalyzerInfoByScan(taskImageScanInfo)
+	jobImageAnalyzer := convert.JobImageAnalyzer(jobImageAnalyzerInfo, 1)
+	repository.NewJobImageAnalyzer(*jobImageAnalyzer)
 	// mark job status
-	persistence.SetJobImageAnalyzerStatus(jobImageAnalyzerInfo.TaskID, entity.StatusRunning)
+	repository.SetJobImageAnalyzerStatus(jobImageAnalyzerInfo.TaskID, model.StatusRunning)
 	// send msg to mq
-	jobImageAnalyzerMsg := analyzer.ConvertJobImageAnalyzerMsg(jobImageAnalyzerInfo)
-	persistence.SendJobImageAnalyzerMsg(jobImageAnalyzerMsg)
+	jobMsg := convert.JobScannerMsg(jobImageAnalyzerInfo.TaskID, jobImageAnalyzerInfo.JobID, jobImageAnalyzerInfo.ImageName, jobImageAnalyzerInfo.ImageDigest)
+	repository.SendMsgJobImageAnalyzer(jobMsg)
 }
 
-func UpdateJobImageAnalyzer(jobImageAnalyzerInfo *entity.JobImageAnalyzerInfo) {
+func UpdateJobImageAnalyzer(jobImageAnalyzerInfo *model.JobImageAnalyzerInfo) {
 	// update job analyzer
-	jobImageAnalyzerData := analyzer.ConvertJobImageAnalyzerData(jobImageAnalyzerInfo, 1)
-	persistence.UpdateJobImageAnalyzer(*jobImageAnalyzerData)
+	jobImageAnalyzer := convert.JobImageAnalyzer(jobImageAnalyzerInfo, 1)
+	repository.UpdateJobImageAnalyzer(*jobImageAnalyzer)
 	// mark job status
-	persistence.SetJobImageAnalyzerStatus(jobImageAnalyzerData.TaskID, entity.StatusSucceed)
+	repository.SetJobImageAnalyzerStatus(jobImageAnalyzer.TaskID, model.StatusSucceed)
 }

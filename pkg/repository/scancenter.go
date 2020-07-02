@@ -3,20 +3,21 @@ package repository
 import (
 	"fmt"
 	"log"
-
+	
+	"github.com/q8s-io/heimdall/pkg/entity"
+	"github.com/q8s-io/heimdall/pkg/entity/model"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/mysql"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/redis"
-	"github.com/q8s-io/heimdall/pkg/models"
 )
 
-func NewTaskImageScan(taskImageScanData entity.TaskImageScanData) error {
+func NewTaskImageScan(taskImageScan entity.TaskImageScan) error {
 	execSQL := fmt.Sprintf("INSERT INTO image_vuln (task_id, task_status, image_name, image_digest, create_time, active) VALUES ('%s', '%s', '%s', '%s', '%s', %d)",
-		taskImageScanData.TaskID, taskImageScanData.TaskStatus, taskImageScanData.ImageName, taskImageScanData.ImageDigest, taskImageScanData.CreateTime, taskImageScanData.Active)
+		taskImageScan.TaskID, taskImageScan.TaskStatus, taskImageScan.ImageName, taskImageScan.ImageDigest, taskImageScan.CreateTime, taskImageScan.Active)
 	err := mysql.InserData(execSQL)
 	return err
 }
 
-func GetTaskImageScan(imageRequestInfo entity.ImageRequestInfo) *[]entity.TaskImageScanData {
+func GetTaskImageScan(imageRequestInfo model.ImageRequestInfo) *[]entity.TaskImageScan {
 	var execSQL string
 	if imageRequestInfo.ImageDigest == "" {
 		execSQL = fmt.Sprintf("SELECT task_id, task_status, image_name, image_digest, create_time FROM image_vuln WHERE active=1 AND image_name='%s'",
@@ -25,12 +26,12 @@ func GetTaskImageScan(imageRequestInfo entity.ImageRequestInfo) *[]entity.TaskIm
 		execSQL = fmt.Sprintf("SELECT task_id, task_status, image_name, image_digest, create_time FROM image_vuln WHERE active=1 AND image_name='%s' AND image_digest='%s'",
 			imageRequestInfo.ImageName, imageRequestInfo.ImageDigest)
 	}
-	taskImageScanDataList := new([]entity.TaskImageScanData)
-	err := mysql.Client.Select(taskImageScanDataList, execSQL)
+	taskImageScanList := new([]entity.TaskImageScan)
+	err := mysql.Client.Select(taskImageScanList, execSQL)
 	if err != nil {
 		log.Println(err)
 	}
-	return taskImageScanDataList
+	return taskImageScanList
 }
 
 func UpdateTaskImageScanDigest(taskID, igest string) {

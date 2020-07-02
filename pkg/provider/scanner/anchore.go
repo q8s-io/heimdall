@@ -5,11 +5,11 @@ import (
 	"time"
 
 	"github.com/Shopify/sarama"
-	
-	"github.com/q8s-io/heimdall/pkg/entity"
+
+	"github.com/q8s-io/heimdall/pkg/entity/convert"
+	"github.com/q8s-io/heimdall/pkg/entity/model"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/net"
-	"github.com/q8s-io/heimdall/pkg/models"
-	"github.com/q8s-io/heimdall/pkg/service"
+	"github.com/q8s-io/heimdall/pkg/repository"
 )
 
 func JobAnchore() {
@@ -17,35 +17,35 @@ func JobAnchore() {
 	queue = make(chan *sarama.ConsumerMessage, 1000)
 
 	// consumer msg from mq
-	persistence.ConsumerJobAnchoreMsg(queue)
-	jobAnchoreMsg := new(entity.JobAnchoreMsg)
+	repository.ConsumerMsgJobAnchore(queue)
+	jobScannerMsg := new(model.JobScannerMsg)
 	for msg := range queue {
-		_ = json.Unmarshal(msg.Value, &jobAnchoreMsg)
+		_ = json.Unmarshal(msg.Value, &jobScannerMsg)
 
 		// preper anchore data
-		anchoreRequestInfo := CreateAnchoreRequestInfo(jobAnchoreMsg)
+		anchoreRequestInfo := convert.AnchoreRequestInfo(jobScannerMsg)
 
 		// trigger anchore scan
 		TriggerAnchoreScan(anchoreRequestInfo)
 
 		// get anchore scan data
-		vulnURL := entity.Config.Anchore.AnchoreURL + "/v1/images/" + anchoreRequestInfo.ImageDigest + "/vuln/all"
+		vulnURL := model.Config.Anchore.AnchoreURL + "/v1/images/" + anchoreRequestInfo.ImageDigest + "/vuln/all"
 		vulnData := AnchoreGET(vulnURL)
 
 		// preper anchore scan result data
-		jobAnchoreInfo := PreperAnchoreScanResult(jobAnchoreMsg, vulnData)
+		jobAnchoreInfo := PreperAnchoreScanResult(jobScannerMsg, vulnData)
 
 		// send data to scancenter
 		requestJSON, _ := json.Marshal(jobAnchoreInfo)
-		_ = net.HTTPPUT(entity.Config.ScanCenter.AnchoreURL, string(requestJSON))
+		_ = net.HTTPPUT(model.Config.ScanCenter.AnchoreURL, string(requestJSON))
 	}
 
 	close(queue)
 }
 
-func TriggerAnchoreScan(anchoreRequestInfo *entity.AnchoreRequestInfo) {
+func TriggerAnchoreScan(anchoreRequestInfo *model.AnchoreRequestInfo) {
 	triggerRequest, _ := json.Marshal(anchoreRequestInfo)
-	triggerURL := entity.Config.Anchore.AnchoreURL + "/v1/images"
+	triggerURL := model.Config.Anchore.AnchoreURL + "/v1/images"
 RETYR:
 	anchoreData := AnchorePOST(triggerURL, string(triggerRequest))
 	analysisStatus := anchoreData[0]["analysis_status"].(string)
@@ -55,7 +55,7 @@ RETYR:
 	}
 }
 
-func PreperAnchoreScanResult(jobAnchoreMsg *entity.JobAnchoreMsg, vulnData map[string]interface{}) *entity.JobAnchoreInfo {
+func PreperAnchoreScanResult(jobScannerMsg *model.JobScannerMsg, vulnData map[string]interface{}) *model.JobScannerInfo {
 	var cveList []map[string]string
 	for _, vulnInfo := range vulnData["vulnerabilities"].([]interface{}) {
 		anchoreScanInfo := make(map[string]string)
@@ -66,10 +66,10 @@ func PreperAnchoreScanResult(jobAnchoreMsg *entity.JobAnchoreMsg, vulnData map[s
 		anchoreScanInfo["cve_url"] = vulnInfo.(map[string]interface{})["url"].(string)
 		cveList = append(cveList, anchoreScanInfo)
 	}
-	jobAnchoreInfo := new(entity.JobAnchoreInfo)
-	jobAnchoreInfo.TaskID = jobAnchoreMsg.TaskID
-	jobAnchoreInfo.JobID = jobAnchoreMsg.JobID
-	jobAnchoreInfo.JobStatus = entity.StatusSucceed
-	jobAnchoreInfo.JobData = cveList
-	return jobAnchoreInfo
+	jobScannerInfo := new(model.JobScannerInfo)
+	jobScannerInfo.TaskID = jobScannerMsg.TaskID
+	jobScannerInfo.JobID = jobScannerMsg.JobID
+	jobScannerInfo.JobStatus = model.StatusSucceed
+	jobScannerInfo.JobData = cveList
+	return jobScannerInfo
 }

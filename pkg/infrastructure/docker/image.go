@@ -10,13 +10,11 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 
-	"github.com/q8s-io/heimdall/pkg/models"
-	
-	"github.com/q8s-io/heimdall/pkg/entity"
+	"github.com/q8s-io/heimdall/pkg/entity/model"
 )
 
 func ImageAnalyzer(imageName string) ([]string, []string) {
-	dockerConfig := entity.Config.Docker
+	dockerConfig := model.Config.Docker
 
 	// docker client
 	cli, cerr := client.NewClient(dockerConfig.Host, dockerConfig.Version, nil, nil)

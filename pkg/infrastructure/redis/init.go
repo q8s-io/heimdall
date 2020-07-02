@@ -5,13 +5,13 @@ import (
 
 	"github.com/go-redis/redis"
 
-	"github.com/q8s-io/heimdall/pkg/models"
+	"github.com/q8s-io/heimdall/pkg/entity/model"
 )
 
 var Client *redis.Client
 
 func Init() {
-	redisConfig := entity.Config.Redis
+	redisConfig := model.Config.Redis
 	Client = redis.NewClient(&redis.Options{
 		Addr:         redisConfig.Host + ":" + redisConfig.Port,
 		Password:     redisConfig.PassWord,

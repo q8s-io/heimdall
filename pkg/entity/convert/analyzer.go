@@ -4,17 +4,35 @@ import (
 	"encoding/json"
 	"strings"
 	"time"
-	
+
 	"github.com/q8s-io/heimdall/pkg/entity"
+	"github.com/q8s-io/heimdall/pkg/entity/model"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/distribution"
-	"github.com/q8s-io/heimdall/pkg/models"
 )
 
-func CreateJobImageAnalyzerInfo(taskImageScanInfo *entity.TaskImageScanInfo) *entity.JobImageAnalyzerInfo {
-	jobImageAnalyzerInfo := new(entity.JobImageAnalyzerInfo)
+func JobImageAnalyzer(jobImageAnalyzerInfo *model.JobImageAnalyzerInfo, active int) *entity.JobImageAnalyzer {
+	var layers string
+	if len(jobImageAnalyzerInfo.ImageLayers) > 0 {
+		layersByte, _ := json.Marshal(jobImageAnalyzerInfo.ImageLayers)
+		layers = string(layersByte)
+	}
+	jobImageAnalyzer := new(entity.JobImageAnalyzer)
+	jobImageAnalyzer.TaskID = jobImageAnalyzerInfo.TaskID
+	jobImageAnalyzer.JobID = jobImageAnalyzerInfo.JobID
+	jobImageAnalyzer.JobStatus = jobImageAnalyzerInfo.JobStatus
+	jobImageAnalyzer.ImageName = jobImageAnalyzerInfo.ImageName
+	jobImageAnalyzer.ImageDigest = jobImageAnalyzerInfo.ImageDigest
+	jobImageAnalyzer.ImageLayers = layers
+	jobImageAnalyzer.CreateTime = jobImageAnalyzerInfo.CreateTime
+	jobImageAnalyzer.Active = active
+	return jobImageAnalyzer
+}
+
+func JobImageAnalyzerInfoByScan(taskImageScanInfo *model.TaskImageScanInfo) *model.JobImageAnalyzerInfo {
+	jobImageAnalyzerInfo := new(model.JobImageAnalyzerInfo)
 	jobImageAnalyzerInfo.TaskID = taskImageScanInfo.TaskID
 	jobImageAnalyzerInfo.JobID = distribution.GetUUID()
-	jobImageAnalyzerInfo.JobStatus = entity.StatusRunning
+	jobImageAnalyzerInfo.JobStatus = model.StatusRunning
 	jobImageAnalyzerInfo.ImageName = taskImageScanInfo.ImageName
 	jobImageAnalyzerInfo.ImageDigest = taskImageScanInfo.ImageDigest
 	jobImageAnalyzerInfo.ImageLayers = []string{}
@@ -22,40 +40,14 @@ func CreateJobImageAnalyzerInfo(taskImageScanInfo *entity.TaskImageScanInfo) *en
 	return jobImageAnalyzerInfo
 }
 
-func ConvertJobImageAnalyzerInfoByMsg(jobImageAnalyzerMsg *entity.JobImageAnalyzerMsg, digest, layers []string) *entity.JobImageAnalyzerInfo {
+func JobImageAnalyzerInfoByMsg(jobScannerMsg *model.JobScannerMsg, digest, layers []string) *model.JobImageAnalyzerInfo {
 	digestList := strings.Split(digest[len(digest)-1], "@")
-	jobImageAnalyzerInfo := new(entity.JobImageAnalyzerInfo)
-	jobImageAnalyzerInfo.TaskID = jobImageAnalyzerMsg.TaskID
-	jobImageAnalyzerInfo.JobID = jobImageAnalyzerMsg.JobID
-	jobImageAnalyzerInfo.JobStatus = entity.StatusSucceed
-	jobImageAnalyzerInfo.ImageName = jobImageAnalyzerMsg.ImageName
+	jobImageAnalyzerInfo := new(model.JobImageAnalyzerInfo)
+	jobImageAnalyzerInfo.TaskID = jobScannerMsg.TaskID
+	jobImageAnalyzerInfo.JobID = jobScannerMsg.JobID
+	jobImageAnalyzerInfo.JobStatus = model.StatusSucceed
+	jobImageAnalyzerInfo.ImageName = jobScannerMsg.ImageName
 	jobImageAnalyzerInfo.ImageDigest = digestList[len(digestList)-1]
 	jobImageAnalyzerInfo.ImageLayers = layers
 	return jobImageAnalyzerInfo
-}
-
-func ConvertJobImageAnalyzerData(jobImageAnalyzerInfo *entity.JobImageAnalyzerInfo, active int) *entity.JobImageAnalyzerData {
-	var layers string
-	if len(jobImageAnalyzerInfo.ImageLayers) > 0 {
-		layersByte, _ := json.Marshal(jobImageAnalyzerInfo.ImageLayers)
-		layers = string(layersByte)
-	}
-	jobAnalyzerData := new(entity.JobImageAnalyzerData)
-	jobAnalyzerData.TaskID = jobImageAnalyzerInfo.TaskID
-	jobAnalyzerData.JobID = jobImageAnalyzerInfo.JobID
-	jobAnalyzerData.JobStatus = jobImageAnalyzerInfo.JobStatus
-	jobAnalyzerData.ImageName = jobImageAnalyzerInfo.ImageName
-	jobAnalyzerData.ImageDigest = jobImageAnalyzerInfo.ImageDigest
-	jobAnalyzerData.ImageLayers = layers
-	jobAnalyzerData.CreateTime = jobImageAnalyzerInfo.CreateTime
-	jobAnalyzerData.Active = active
-	return jobAnalyzerData
-}
-
-func ConvertJobImageAnalyzerMsg(jobImageAnalyzerInfo *entity.JobImageAnalyzerInfo) *entity.JobImageAnalyzerMsg {
-	jobImageAnalyzerMsg := new(entity.JobImageAnalyzerMsg)
-	jobImageAnalyzerMsg.TaskID = jobImageAnalyzerInfo.TaskID
-	jobImageAnalyzerMsg.JobID = jobImageAnalyzerInfo.JobID
-	jobImageAnalyzerMsg.ImageName = jobImageAnalyzerInfo.ImageName
-	return jobImageAnalyzerMsg
 }

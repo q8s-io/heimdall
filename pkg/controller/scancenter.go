@@ -2,14 +2,14 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-
-	"github.com/q8s-io/heimdall/pkg/domain/scancenter"
+	
+	"github.com/q8s-io/heimdall/pkg/entity/model"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/ginext"
-	"github.com/q8s-io/heimdall/pkg/models"
+	"github.com/q8s-io/heimdall/pkg/provider/scancenter"
 )
 
 func GetImageVulnData(c *gin.Context) {
-	imageRequestInfo := new(entity.ImageRequestInfo)
+	imageRequestInfo := new(model.ImageRequestInfo)
 	if err := c.ShouldBind(&imageRequestInfo); err != nil {
 		return
 	}
@@ -26,7 +26,7 @@ func GetImageVulnData(c *gin.Context) {
 }
 
 func UpdateImageAnalyzerData(c *gin.Context) {
-	jobImageAnalyzerInfo := new(entity.JobImageAnalyzerInfo)
+	jobImageAnalyzerInfo := new(model.JobImageAnalyzerInfo)
 	if err := c.ShouldBind(&jobImageAnalyzerInfo); err != nil {
 		return
 	}
@@ -38,13 +38,13 @@ func UpdateImageAnalyzerData(c *gin.Context) {
 }
 
 func UpdateAnchoreData(c *gin.Context) {
-	jobAnchoreInfo := new(entity.JobAnchoreInfo)
-	if err := c.ShouldBind(&jobAnchoreInfo); err != nil {
+	jobScannerInfo := new(model.JobScannerInfo)
+	if err := c.ShouldBind(&jobScannerInfo); err != nil {
 		return
 	}
 
 	// update job
-	scancenter.TaskImageScanRotaryAnchore(jobAnchoreInfo)
+	scancenter.TaskImageScanRotaryAnchore(jobScannerInfo)
 
 	ginext.Sender(c, 0, "", "")
 }

@@ -4,66 +4,59 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/q8s-io/heimdall/pkg/entity"
+	"github.com/q8s-io/heimdall/pkg/entity/model"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/distribution"
-	"github.com/q8s-io/heimdall/pkg/models"
 )
 
-func CreateJobAnchoreInfo(jobImageAnalyzerInfo *entity.JobImageAnalyzerInfo) *entity.JobAnchoreInfo {
-	jobAnchoreInfo := new(entity.JobAnchoreInfo)
-	jobAnchoreInfo.TaskID = jobImageAnalyzerInfo.TaskID
-	jobAnchoreInfo.JobID = distribution.GetUUID()
-	jobAnchoreInfo.JobStatus = entity.StatusRunning
-	jobAnchoreInfo.ImageName = jobImageAnalyzerInfo.ImageName
-	jobAnchoreInfo.ImageDigest = jobImageAnalyzerInfo.ImageDigest
-	jobAnchoreInfo.CreateTime = time.Now().Format("2006-01-02 15:04:05")
-	return jobAnchoreInfo
-}
-
-func ConvertJobAnchoreInfo(jobAnchoreData *entity.JobAnchoreData) *entity.JobAnchoreInfo {
-	jobData := make([]map[string]string, 0)
-	_ = json.Unmarshal([]byte(jobAnchoreData.JobData), &jobData)
-	jobAnchoreInfo := new(entity.JobAnchoreInfo)
-	jobAnchoreInfo.TaskID = jobAnchoreData.TaskID
-	jobAnchoreInfo.JobID = jobAnchoreData.JobID
-	jobAnchoreInfo.JobStatus = jobAnchoreData.JobStatus
-	jobAnchoreInfo.JobData = jobData
-	jobAnchoreInfo.ImageName = jobAnchoreData.ImageName
-	jobAnchoreInfo.ImageDigest = jobAnchoreData.ImageDigest
-	jobAnchoreInfo.CreateTime = jobAnchoreData.CreateTime
-	return jobAnchoreInfo
-}
-
-func ConvertJobAnchoreData(jobAnchoreInfo *entity.JobAnchoreInfo, active int) *entity.JobAnchoreData {
+func JobScanner(jobScannerInfo *model.JobScannerInfo, active int) *entity.JobScanner {
 	var jobData string
-	if len(jobAnchoreInfo.JobData) > 0 {
-		jobDataByte, _ := json.Marshal(jobAnchoreInfo.JobData)
+	if len(jobScannerInfo.JobData) > 0 {
+		jobDataByte, _ := json.Marshal(jobScannerInfo.JobData)
 		jobData = string(jobDataByte)
 	}
-	jobAnchoreData := new(entity.JobAnchoreData)
-	jobAnchoreData.TaskID = jobAnchoreInfo.TaskID
-	jobAnchoreData.JobID = jobAnchoreInfo.JobID
-	jobAnchoreData.JobStatus = jobAnchoreInfo.JobStatus
-	jobAnchoreData.JobData = jobData
-	jobAnchoreData.ImageName = jobAnchoreInfo.ImageName
-	jobAnchoreData.ImageDigest = jobAnchoreInfo.ImageDigest
-	jobAnchoreData.CreateTime = jobAnchoreInfo.CreateTime
-	jobAnchoreData.Active = active
-	return jobAnchoreData
+	JobScanner := new(entity.JobScanner)
+	JobScanner.TaskID = jobScannerInfo.TaskID
+	JobScanner.JobID = jobScannerInfo.JobID
+	JobScanner.JobStatus = jobScannerInfo.JobStatus
+	JobScanner.JobData = jobData
+	JobScanner.ImageName = jobScannerInfo.ImageName
+	JobScanner.ImageDigest = jobScannerInfo.ImageDigest
+	JobScanner.CreateTime = jobScannerInfo.CreateTime
+	JobScanner.Active = active
+	return JobScanner
 }
 
-func ConvertJobAnchoreMsg(jobAnchoreInfo *entity.JobAnchoreInfo) *entity.JobAnchoreMsg {
-	jobAnchoreMsg := new(entity.JobAnchoreMsg)
-	jobAnchoreMsg.TaskID = jobAnchoreInfo.TaskID
-	jobAnchoreMsg.JobID = jobAnchoreInfo.JobID
-	jobAnchoreMsg.ImageName = jobAnchoreInfo.ImageName
-	jobAnchoreMsg.ImageDigest = jobAnchoreInfo.ImageDigest
-	return jobAnchoreMsg
+func JobScannerInfo(jobScanner *entity.JobScanner) *model.JobScannerInfo {
+	jobData := make([]map[string]string, 0)
+	_ = json.Unmarshal([]byte(jobScanner.JobData), &jobData)
+	jobScannerInfo := new(model.JobScannerInfo)
+	jobScannerInfo.TaskID = jobScanner.TaskID
+	jobScannerInfo.JobID = jobScanner.JobID
+	jobScannerInfo.JobStatus = jobScanner.JobStatus
+	jobScannerInfo.JobData = jobData
+	jobScannerInfo.ImageName = jobScanner.ImageName
+	jobScannerInfo.ImageDigest = jobScanner.ImageDigest
+	jobScannerInfo.CreateTime = jobScanner.CreateTime
+	return jobScannerInfo
 }
 
-func CreateAnchoreRequestInfo(jobAnchoreMsg *entity.JobAnchoreMsg) *entity.AnchoreRequestInfo {
-	anchoreRequestInfo := new(entity.AnchoreRequestInfo)
-	anchoreRequestInfo.ImageName = jobAnchoreMsg.ImageName
-	anchoreRequestInfo.ImageDigest = jobAnchoreMsg.ImageDigest
-	anchoreRequestInfo.CreateTime = time.Now().Format("2006-01-02T15:04:05Z")
-	return anchoreRequestInfo
+func JobScannerInfoByAnalyzerInfo(jobImageAnalyzerInfo *model.JobImageAnalyzerInfo) *model.JobScannerInfo {
+	jobScannerInfo := new(model.JobScannerInfo)
+	jobScannerInfo.TaskID = jobImageAnalyzerInfo.TaskID
+	jobScannerInfo.JobID = distribution.GetUUID()
+	jobScannerInfo.JobStatus = model.StatusRunning
+	jobScannerInfo.ImageName = jobImageAnalyzerInfo.ImageName
+	jobScannerInfo.ImageDigest = jobImageAnalyzerInfo.ImageDigest
+	jobScannerInfo.CreateTime = time.Now().Format("2006-01-02 15:04:05")
+	return jobScannerInfo
+}
+
+func JobScannerMsg(taskID, jobID, imageName, imageDigest string) *model.JobScannerMsg {
+	jobScannerMsg := new(model.JobScannerMsg)
+	jobScannerMsg.TaskID = taskID
+	jobScannerMsg.JobID = jobID
+	jobScannerMsg.ImageName = imageName
+	jobScannerMsg.ImageDigest = imageDigest
+	return jobScannerMsg
 }

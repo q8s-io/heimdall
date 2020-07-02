@@ -1,4 +1,4 @@
-package entity
+package model
 
 var Config Runtime
 
@@ -6,8 +6,8 @@ type Runtime struct {
 	MySQL      mysql
 	Redis      redis
 	Kafka      kafka
-	Docker     docker
 	ScanCenter scancenter
+	Docker     docker
 	Anchore    anchore
 }
 
@@ -29,14 +29,14 @@ type kafka struct {
 	BrokerList []string `toml:"broker"`
 }
 
-type docker struct {
-	Host    string `toml:"host"`
-	Version string `toml:"version"`
-}
-
 type scancenter struct {
 	AnalyzerURL string `toml:"analyzer_url"`
 	AnchoreURL  string `toml:"anchore_url"`
+}
+
+type docker struct {
+	Host    string `toml:"host"`
+	Version string `toml:"version"`
 }
 
 type anchore struct {

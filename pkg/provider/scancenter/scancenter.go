@@ -1,41 +1,42 @@
 package scancenter
 
 import (
-	"github.com/q8s-io/heimdall/pkg/models"
-	
 	"github.com/q8s-io/heimdall/pkg/entity"
+	"github.com/q8s-io/heimdall/pkg/entity/convert"
+	"github.com/q8s-io/heimdall/pkg/entity/model"
 )
 
-func TaskImageScanRotaryCreate(imageRequestInfo *entity.ImageRequestInfo) (*entity.ImageVulnData, error) {
+func TaskImageScanRotaryCreate(imageRequestInfo *model.ImageRequestInfo) (*model.ImageVulnInfo, error) {
 	taskImageScanInfo, err := CreateTaskImageScan(imageRequestInfo)
 	if err != nil {
 		return nil, err
 	}
 	PreperJobAnalyzer(taskImageScanInfo)
-	imageVulnData := CreateImageVulnData(taskImageScanInfo)
-	return imageVulnData, nil
+	imageVulnInfo := convert.ImageVulnByScanInfo(taskImageScanInfo, nil)
+	return imageVulnInfo, nil
 }
 
-func TaskImageScanRotaryAnalyzer(jobImageAnalyzerInfo *entity.JobImageAnalyzerInfo) {
+func TaskImageScanRotaryAnalyzer(jobImageAnalyzerInfo *model.JobImageAnalyzerInfo) {
 	UpdateTaskImageScanDigest(jobImageAnalyzerInfo)
 	UpdateJobImageAnalyzer(jobImageAnalyzerInfo)
 	PreperJobAnchore(jobImageAnalyzerInfo)
 }
 
-func TaskImageScanRotaryAnchore(jobAnchoreInfo *entity.JobAnchoreInfo) {
-	UpdateJobAnchore(jobAnchoreInfo)
-	JudgeTaskRotary(jobAnchoreInfo.TaskID)
+func TaskImageScanRotaryAnchore(jobScannerInfo *model.JobScannerInfo) {
+	UpdateJobAnchore(jobScannerInfo)
+	JudgeTaskRotary(jobScannerInfo.TaskID)
 }
 
-func TaskImageScanMerger(taskImageScanData *entity.TaskImageScanData) (interface{}, error) {
-	taskID := taskImageScanData.TaskID
+func TaskImageScanMerger(taskImageScan *entity.TaskImageScan) (interface{}, error) {
+	taskID := taskImageScan.TaskID
 	jobAnchoreVuln := GetJobAnchore(taskID)
-	imageVulnData := ImageVulnDataMerger(taskImageScanData, jobAnchoreVuln)
+	imageVulnData := MergerImageVulnData(taskImageScan, jobAnchoreVuln)
 	return imageVulnData, nil
 }
 
-func ImageVulnDataMerger(taskImageScanData *entity.TaskImageScanData, jobAnchoreVuln []map[string]string) *entity.ImageVulnData {
+func MergerImageVulnData(taskImageScan *entity.TaskImageScan, jobAnchoreVuln []map[string]string) *model.ImageVulnInfo {
 	vulnData := jobAnchoreVuln
-	imageVulnData := ConvertImageVulnData(taskImageScanData, vulnData)
-	return imageVulnData
+	taskImageScanInfo := convert.TaskImageScanInfo(taskImageScan)
+	imageVulnInfo := convert.ImageVulnByScanInfo(taskImageScanInfo, vulnData)
+	return imageVulnInfo
 }

@@ -5,7 +5,7 @@ import (
 
 	"github.com/Shopify/sarama"
 
-	"github.com/q8s-io/heimdall/pkg/models"
+	"github.com/q8s-io/heimdall/pkg/entity/model"
 )
 
 var SyncProducer sarama.SyncProducer
@@ -17,7 +17,7 @@ func InitSyncProducer() {
 	config.Producer.RequiredAcks = sarama.WaitForAll
 	config.Producer.Return.Successes = true
 
-	kafkaConfig := entity.Config.Kafka
+	kafkaConfig := model.Config.Kafka
 
 	SyncProducer, syncProducerErr = sarama.NewSyncProducer(kafkaConfig.BrokerList, config)
 	if syncProducerErr != nil {

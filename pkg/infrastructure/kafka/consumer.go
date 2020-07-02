@@ -5,7 +5,7 @@ import (
 
 	"github.com/Shopify/sarama"
 
-	"github.com/q8s-io/heimdall/pkg/models"
+	"github.com/q8s-io/heimdall/pkg/entity/model"
 )
 
 var Consumer sarama.Consumer
@@ -14,7 +14,7 @@ var consumerErr interface{}
 func InitConsumer() {
 	config := sarama.NewConfig()
 
-	kafkaConfig := entity.Config.Kafka
+	kafkaConfig := model.Config.Kafka
 
 	Consumer, consumerErr = sarama.NewConsumer(kafkaConfig.BrokerList, config)
 	if consumerErr != nil {
