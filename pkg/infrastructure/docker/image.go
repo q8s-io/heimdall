@@ -2,6 +2,7 @@ package docker
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -12,6 +13,8 @@ import (
 
 	"github.com/q8s-io/heimdall/pkg/entity/model"
 )
+
+var imageFullName string
 
 func ImageAnalyzer(imageName string) ([]string, []string) {
 	dockerConfig := model.Config.Docker
@@ -25,11 +28,21 @@ func ImageAnalyzer(imageName string) ([]string, []string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 600*time.Second)
 	defer cancel()
 
+	imageFullName = imageName
+
+PULLIMAGE:
 	// pull image
-	PullImage(imageName, cli, ctx)
+	err := PullImage(imageFullName, cli, ctx)
+	if err != nil {
+		switch err.Error() {
+		case "repository name must be canonical":
+			imageFullName = fmt.Sprintf("docker.io/library/%s", imageName)
+			goto PULLIMAGE
+		}
+	}
 
 	// inspect image
-	imageID, digest, layers := InspectImage(imageName, cli, ctx)
+	imageID, digest, layers := InspectImage(imageFullName, cli, ctx)
 
 	// remove image
 	DeleteImage(imageID, cli, ctx)
@@ -37,15 +50,18 @@ func ImageAnalyzer(imageName string) ([]string, []string) {
 	return digest, layers
 }
 
-func PullImage(imageName string, cli *client.Client, ctx context.Context) {
+func PullImage(imageName string, cli *client.Client, ctx context.Context) error {
 	out, perr := cli.ImagePull(ctx, imageName, types.ImagePullOptions{})
 	if perr != nil {
 		log.Println(perr)
+		return perr
 	}
 	if _, perr = io.Copy(os.Stdout, out); perr != nil {
 		log.Println(perr)
+		return perr
 	}
 	out.Close()
+	return nil
 }
 
 func InspectImage(imageName string, cli *client.Client, ctx context.Context) (string, []string, []string) {
