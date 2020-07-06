@@ -20,6 +20,7 @@ func TaskImageScanRotaryAnalyzer(jobImageAnalyzerInfo *model.JobImageAnalyzerInf
 	UpdateTaskImageScanDigest(jobImageAnalyzerInfo)
 	UpdateJobImageAnalyzer(jobImageAnalyzerInfo)
 	PreperJobAnchore(jobImageAnalyzerInfo)
+	PreperJobTrivy(jobImageAnalyzerInfo)
 }
 
 func TaskImageScanRotaryAnchore(jobScannerInfo *model.JobScannerInfo) {
@@ -27,10 +28,18 @@ func TaskImageScanRotaryAnchore(jobScannerInfo *model.JobScannerInfo) {
 	JudgeTaskRotary(jobScannerInfo.TaskID)
 }
 
+func TaskImageScanRotaryTrivy(jobScannerInfo *model.JobScannerInfo) {
+	UpdateJobTrivy(jobScannerInfo)
+	JudgeTaskRotary(jobScannerInfo.TaskID)
+}
+
 func TaskImageScanMerger(taskImageScan *entity.TaskImageScan) (interface{}, error) {
 	taskID := taskImageScan.TaskID
-	jobAnchoreVuln := GetJobAnchore(taskID)
-	imageVulnData := MergerImageVulnData(taskImageScan, jobAnchoreVuln)
+	// jobAnchoreVuln := GetJobAnchore(taskID)
+	jobTrivyVuln := GetJobTrivy(taskID)
+
+	// imageVulnData := MergerImageVulnData(taskImageScan, jobAnchoreVuln)
+	imageVulnData := MergerImageVulnData(taskImageScan, jobTrivyVuln)
 	return imageVulnData, nil
 }
 

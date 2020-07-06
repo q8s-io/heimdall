@@ -9,6 +9,7 @@ type Runtime struct {
 	ScanCenter scancenter
 	Docker     docker
 	Anchore    anchore
+	Trivy      trivy
 }
 
 type mysql struct {
@@ -32,6 +33,7 @@ type kafka struct {
 type scancenter struct {
 	AnalyzerURL string `toml:"analyzer_url"`
 	AnchoreURL  string `toml:"anchore_url"`
+	TrivyURL    string `toml:"trivy_url"`
 }
 
 type docker struct {
@@ -43,4 +45,9 @@ type anchore struct {
 	AnchoreURL string `toml:"anchore_url"`
 	UserName   string `toml:"username"`
 	PassWord   string `toml:"password"`
+}
+
+type trivy struct {
+	HostURL string `toml:"host_url"`
+	Version string `toml:"version"`
 }

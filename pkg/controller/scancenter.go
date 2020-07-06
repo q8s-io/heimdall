@@ -2,7 +2,7 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	
+
 	"github.com/q8s-io/heimdall/pkg/entity/model"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/ginext"
 	"github.com/q8s-io/heimdall/pkg/provider/scancenter"
@@ -45,6 +45,18 @@ func UpdateAnchoreData(c *gin.Context) {
 
 	// update job
 	scancenter.TaskImageScanRotaryAnchore(jobScannerInfo)
+
+	ginext.Sender(c, 0, "", "")
+}
+
+func UpdateTrivyData(c *gin.Context) {
+	jobScannerInfo := new(model.JobScannerInfo)
+	if err := c.ShouldBind(&jobScannerInfo); err != nil {
+		return
+	}
+
+	// update job
+	scancenter.TaskImageScanRotaryTrivy(jobScannerInfo)
 
 	ginext.Sender(c, 0, "", "")
 }

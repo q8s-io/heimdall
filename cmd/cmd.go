@@ -14,7 +14,7 @@ import (
 )
 
 var confPath = flag.String("conf", "./configs/pro.toml", "The path of config.")
-var serverTpye = flag.String("type", "api", "The type of server.")
+var serverTpye = flag.String("type", "", "The type of server.")
 
 func Run() {
 	flag.Parse()
@@ -32,6 +32,8 @@ func RunApp(serverTpye string) {
 		RunAnalyzer()
 	case "scanner-anchore":
 		RunScannerAnchore()
+	case "scanner-trivy":
+		RunScannerTrivy()
 	case "tool":
 		RunTool()
 	default:
@@ -54,6 +56,11 @@ func RunAnalyzer() {
 func RunScannerAnchore() {
 	kafka.InitConsumer()
 	scanner.JobAnchore()
+}
+
+func RunScannerTrivy() {
+	kafka.InitConsumer()
+	scanner.JobTrivy()
 }
 
 func RunTool() {

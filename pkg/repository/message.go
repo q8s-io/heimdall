@@ -13,10 +13,18 @@ func SendMsgJobAnchore(jobScannerMsg *model.JobScannerMsg) {
 	kafka.SyncProducerSendMsg("anchore", jobScannerMsg)
 }
 
+func SendMsgJobTrivy(jobScannerMsg *model.JobScannerMsg) {
+	kafka.SyncProducerSendMsg("trivy", jobScannerMsg)
+}
+
 func ConsumerMsgJobImageAnalyzer() {
 	go kafka.ConsumerMsg("analyzer")
 }
 
 func ConsumerMsgJobAnchore() {
 	go kafka.ConsumerMsg("anchore")
+}
+
+func ConsumerMsgJobTrivy() {
+	go kafka.ConsumerMsg("trivy")
 }
