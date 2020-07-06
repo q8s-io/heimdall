@@ -2,7 +2,7 @@ package convert
 
 import (
 	"time"
-	
+
 	"github.com/q8s-io/heimdall/pkg/entity/model"
 )
 

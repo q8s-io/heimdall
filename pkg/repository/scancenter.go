@@ -3,7 +3,7 @@ package repository
 import (
 	"fmt"
 	"log"
-	
+
 	"github.com/q8s-io/heimdall/pkg/entity"
 	"github.com/q8s-io/heimdall/pkg/entity/model"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/mysql"

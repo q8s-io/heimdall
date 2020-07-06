@@ -60,7 +60,7 @@ func PullImage(imageName string, cli *client.Client, ctx context.Context) error 
 		log.Println(perr)
 		return perr
 	}
-	out.Close()
+	_ = out.Close()
 	return nil
 }
 
