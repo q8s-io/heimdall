@@ -2,6 +2,7 @@ package analyzer
 
 import (
 	"encoding/json"
+	"log"
 
 	"github.com/q8s-io/heimdall/pkg/entity/convert"
 	"github.com/q8s-io/heimdall/pkg/entity/model"
@@ -16,6 +17,7 @@ func JobAnalyzer() {
 	repository.ConsumerMsgJobImageAnalyzer()
 	jobScannerMsg := new(model.JobScannerMsg)
 	for msg := range kafka.Queue {
+		log.Printf("consumer msg from kafka: %s", msg)
 		_ = json.Unmarshal(msg, &jobScannerMsg)
 
 		// image analyzer
@@ -25,6 +27,7 @@ func JobAnalyzer() {
 
 		// send data to scancenter
 		requestJSON, _ := json.Marshal(jobImageAnalyzerInfo)
+		log.Printf("analyzer process result: %s", string(requestJSON))
 		_ = net.HTTPPUT(model.Config.ScanCenter.AnalyzerURL, string(requestJSON))
 	}
 }

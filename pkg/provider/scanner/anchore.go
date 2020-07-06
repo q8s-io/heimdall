@@ -2,6 +2,7 @@ package scanner
 
 import (
 	"encoding/json"
+	"log"
 	"time"
 
 	"github.com/q8s-io/heimdall/pkg/entity/convert"
@@ -16,6 +17,7 @@ func JobAnchore() {
 	repository.ConsumerMsgJobAnchore()
 	jobScannerMsg := new(model.JobScannerMsg)
 	for msg := range kafka.Queue {
+		log.Printf("consumer msg from kafka: %s", msg)
 		_ = json.Unmarshal(msg, &jobScannerMsg)
 
 		// preper anchore data
@@ -33,6 +35,7 @@ func JobAnchore() {
 
 		// send data to scancenter
 		requestJSON, _ := json.Marshal(jobAnchoreInfo)
+		log.Printf("anchore process result: %s", string(requestJSON))
 		_ = net.HTTPPUT(model.Config.ScanCenter.AnchoreURL, string(requestJSON))
 	}
 }
