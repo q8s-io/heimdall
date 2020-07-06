@@ -4,16 +4,18 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"log"
+	"strings"
+	"time"
+
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/mount"
 	volumetypes "github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/client"
+
 	"github.com/q8s-io/heimdall/pkg/entity/model"
-	"io"
-	"log"
-	"strings"
-	"time"
 )
 
 func TrivyScan(imageName string) model.TrivyScanResult {
@@ -31,7 +33,9 @@ func TrivyScan(imageName string) model.TrivyScanResult {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 
 	// Create volume
-	volume, volumeErr := cli.VolumeCreate(ctx, volumetypes.VolumesCreateBody{Name: "trivy_vol"})
+	vilumeType := volumetypes.VolumeCreateBody{}
+	vilumeType.Name = "trivy_vol"
+	volume, volumeErr := cli.VolumeCreate(ctx, vilumeType)
 	if volumeErr != nil {
 		log.Print("create volume failed !!!", volumeErr)
 		return scanResult

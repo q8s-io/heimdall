@@ -2,6 +2,9 @@ package scanner
 
 import (
 	"encoding/json"
+	"fmt"
+	"log"
+
 	"github.com/q8s-io/heimdall/pkg/entity/model"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/kafka"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/net"
@@ -14,6 +17,7 @@ func JobTrivy() {
 	jobScannerMsg := new(model.JobScannerMsg)
 
 	for msg := range kafka.Queue {
+		log.Printf("consumer msg from kafka: %s", msg)
 		_ = json.Unmarshal(msg, &jobScannerMsg)
 
 		// prepare trivy data
@@ -27,6 +31,7 @@ func JobTrivy() {
 
 		// send to scancenter
 		requestJSON, _ := json.Marshal(jobTrivyInfo)
+		log.Printf("trivy process result: %s", string(requestJSON))
 		_ = net.HTTPPUT(model.Config.ScanCenter.TrivyURL, string(requestJSON))
 	}
 }
@@ -38,10 +43,10 @@ func PreperTrivyScanResult(jobScannerMsg *model.JobScannerMsg, vulnData *model.T
 
 		cve["package_name"] = vulnInfo.PkgName
 		cve["package_version"] = vulnInfo.InstalledVersion
-		cve["package_full_nale"] = vulnInfo.PkgName + "-" + vulnInfo.InstalledVersion
+		cve["package_full_nale"] = fmt.Sprintf("%s+%s", vulnInfo.PkgName, vulnInfo.InstalledVersion)
 		cve["cve"] = vulnInfo.VulnerabilityID
 		// process url
-		cve["cve_url"] = "http://cve.mitre.org/cgi-bin/cvename.cgi?name=" + cve["cve"]
+		cve["cve_url"] = fmt.Sprintf("http://cve.mitre.org/cgi-bin/cvename.cgi?name=%s", cve["cve"])
 		cveList = append(cveList, cve)
 	}
 	jobScannerInfo := new(model.JobScannerInfo)
