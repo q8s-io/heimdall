@@ -90,4 +90,3 @@ services:
       - POSTGRES_PASSWORD=mysecretpassword
     volumes:
       - anchore-db-volume:/var/lib/postgresql/data
-

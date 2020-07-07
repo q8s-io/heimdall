@@ -23,7 +23,7 @@ anchore_url = "http://10.16.29.51:12001/api/images/anchore/"
 trivy_url = "http://10.16.29.51:12001/api/images/trivy/"
 
 [anchore]
-anchore_url = "http://117.50.109.103:8228"
+anchore_url = "http://10.16.29.51:8228"
 username = "admin"
 password = "foobar"
 
