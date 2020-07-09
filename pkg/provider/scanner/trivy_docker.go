@@ -4,14 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/mount"
-	"github.com/docker/docker/client"
-	"github.com/q8s-io/heimdall/pkg/infrastructure/docker"
 	"io"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/mount"
+	"github.com/docker/docker/client"
+
+	"github.com/q8s-io/heimdall/pkg/infrastructure/docker"
 
 	"github.com/q8s-io/heimdall/pkg/entity/model"
 )
@@ -66,7 +68,7 @@ func TrivyScan(imageName string) model.TrivyScanResult {
 	docker.DeleteContainerWithVolume(cli, ctx, containerID, volumeName)
 
 	// Remove volume
-	docker.RemoveVolumeByName(cli, ctx, volumeName)
+	_ = docker.RemoveVolumeByName(cli, ctx, volumeName)
 
 	// Close client
 	defer cli.Close()
@@ -88,7 +90,7 @@ func getTrivyResults(cli *client.Client, ctx context.Context, containerID string
 	}
 
 	buf := new(strings.Builder)
-	io.Copy(buf, out)
+	_, _ = io.Copy(buf, out)
 
 	// 处理前后乱码问题
 	str := deletePreAndSufSpace(buf.String())

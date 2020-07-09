@@ -50,10 +50,12 @@ func PreperTrivyScanResult(jobScannerMsg *model.JobScannerMsg, vulnData *model.T
 		cve["cve_url"] = fmt.Sprintf("http://cve.mitre.org/cgi-bin/cvename.cgi?name=%s", cve["cve"])
 		cveList = append(cveList, cve)
 	}
+
 	jobScannerInfo := new(model.JobScannerInfo)
 	jobScannerInfo.TaskID = jobScannerMsg.TaskID
 	jobScannerInfo.JobID = jobScannerMsg.JobID
 	jobScannerInfo.JobStatus = model.StatusSucceed
 	jobScannerInfo.JobData = cveList
+
 	return jobScannerInfo
 }

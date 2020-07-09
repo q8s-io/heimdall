@@ -23,7 +23,7 @@ func CreateContainerWithVolume(cli *client.Client, ctx context.Context, config *
 	body, createErr := cli.ContainerCreate(ctx, config, hostConfig, nil, "trivy")
 	if createErr != nil {
 		log.Print("create container trivy failed !!!")
-		RemoveVolumeByName(cli, ctx, volumeName)
+		_ = RemoveVolumeByName(cli, ctx, volumeName)
 		return "", createErr
 	}
 	log.Printf("create container %s successed !!!", body.ID)
@@ -32,7 +32,7 @@ func CreateContainerWithVolume(cli *client.Client, ctx context.Context, config *
 
 func DeleteContainerWithVolume(cli *client.Client, ctx context.Context, containerID string, volumeName string) {
 	// 删除容器
-	removeContainer(cli, ctx, containerID)
+	_, _ = removeContainer(cli, ctx, containerID)
 }
 
 // 保证容器运行结束, 得到结果
@@ -43,7 +43,7 @@ func RunContainerWithVolume(cli *client.Client, ctx context.Context, containerID
 		// 删除容器
 		_, _ = removeContainer(cli, ctx, containerID)
 		// 删除卷
-		RemoveVolumeByName(cli, ctx, volumeName)
+		_ = RemoveVolumeByName(cli, ctx, volumeName)
 		return err
 	}
 
