@@ -46,9 +46,9 @@ func TaskImageScanInfoByRequestInfo(imageRequestInfo *model.ImageRequestInfo) *m
 	return taskImageScanInfo
 }
 
-func ImageVulnByScanInfo(taskImageScanInfo *model.TaskImageScanInfo, vulnData []map[string]string) *model.ImageVulnInfo {
+func ImageVulnByScanInfo(taskImageScanInfo *model.TaskImageScanInfo, vulnData []map[string]interface{}) *model.ImageVulnInfo {
 	if vulnData == nil {
-		vulnData = make([]map[string]string, 0)
+		vulnData = make([]map[string]interface{}, 0)
 	}
 	imageVulnInfo := new(model.ImageVulnInfo)
 	imageVulnInfo.TaskID = taskImageScanInfo.TaskID

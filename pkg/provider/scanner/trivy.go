@@ -34,6 +34,7 @@ func JobTrivy() {
 		log.Printf("trivy process result: %s", string(requestJSON))
 		_ = net.HTTPPUT(model.Config.ScanCenter.TrivyURL, string(requestJSON))
 	}
+
 }
 
 func PreperTrivyScanResult(jobScannerMsg *model.JobScannerMsg, vulnData *model.TrivyScanResult) *model.JobScannerInfo {
@@ -43,7 +44,7 @@ func PreperTrivyScanResult(jobScannerMsg *model.JobScannerMsg, vulnData *model.T
 
 		cve["package_name"] = vulnInfo.PkgName
 		cve["package_version"] = vulnInfo.InstalledVersion
-		cve["package_full_nale"] = fmt.Sprintf("%s+%s", vulnInfo.PkgName, vulnInfo.InstalledVersion)
+		cve["package_full_nale"] = fmt.Sprintf("%s-%s", vulnInfo.PkgName, vulnInfo.InstalledVersion)
 		cve["cve"] = vulnInfo.VulnerabilityID
 		// process url
 		cve["cve_url"] = fmt.Sprintf("http://cve.mitre.org/cgi-bin/cvename.cgi?name=%s", cve["cve"])

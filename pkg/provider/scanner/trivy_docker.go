@@ -4,23 +4,34 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/mount"
+	"github.com/docker/docker/client"
+	"github.com/q8s-io/heimdall/pkg/infrastructure/docker"
 	"io"
 	"log"
 	"strings"
-
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/mount"
-	volumetypes "github.com/docker/docker/api/types/volume"
-	"github.com/docker/docker/client"
+	"time"
 
 	"github.com/q8s-io/heimdall/pkg/entity/model"
-	"github.com/q8s-io/heimdall/pkg/infrastructure/docker"
 )
 
 func TrivyScan(imageName string) model.TrivyScanResult {
 	scanResult := model.TrivyScanResult{}
 	trivyConfig := model.Config.Trivy
 
+	// Create a docker client from remote host
+	cli, err := client.NewClient(trivyConfig.HostURL, trivyConfig.Version, nil, nil)
+	if err != nil {
+		log.Println(err)
+		return scanResult
+	}
+
+	// The runtime of limits is 10 minute
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+
+	// Init config of trivy container
+	volumeName := "trivy_vol" // volume name
 	containerConfig := &container.Config{
 		Image: "aquasec/trivy",
 		Cmd:   []string{"-f", "json", "-o", "/root/.cache/result.json", imageName},
@@ -29,33 +40,38 @@ func TrivyScan(imageName string) model.TrivyScanResult {
 		Mounts: []mount.Mount{
 			{
 				Type:     mount.TypeVolume,
-				Source:   "trivy",
+				Source:   volumeName,
 				Target:   "/root/.cache/",
 				ReadOnly: false,
 			},
 		},
 	}
-	vilumeType := volumetypes.VolumesCreateBody{}
-	vilumeType.Name = "trivy_vol"
 
 	// Create trivy container
-	cli, ctx, containerID := docker.CreateContainerWithVolume(trivyConfig.HostURL, trivyConfig.HostURL, containerConfig, hostConfig, vilumeType)
-	if containerID == "" {
+	containerID, err := docker.CreateContainerWithVolume(cli, ctx, containerConfig, hostConfig, volumeName)
+	if err != nil {
 		return scanResult
 	}
 
-	// Run container in id
-	runErr := docker.RunContainerWithVolume(cli, ctx, containerID, vilumeType)
+	// Run trivy container in id
+	runErr := docker.RunContainerWithVolume(cli, ctx, containerID, volumeName)
 	if runErr != nil {
-		log.Print("start container failed !!!", runErr)
 		return scanResult
 	}
 
 	// Get result
 	scanResult = getTrivyResults(cli, ctx, containerID)
 
-	// Delete
-	docker.DeleceContainerWithVolume(cli, ctx, containerID, vilumeType)
+	// Delete container trivy
+	docker.DeleteContainerWithVolume(cli, ctx, containerID, volumeName)
+
+	// Remove volume
+	docker.RemoveVolumeByName(cli, ctx, volumeName)
+
+	// Close client
+	defer cli.Close()
+	// Close context
+	defer cancel()
 
 	return scanResult
 }
@@ -67,11 +83,12 @@ func getTrivyResults(cli *client.Client, ctx context.Context, containerID string
 	out, cps, err := cli.CopyFromContainer(ctx, containerID, "/root/.cache/result.json")
 	fmt.Println(cps)
 	if err != nil {
+		log.Print("copy file from container failed !!!", err)
 		return result
 	}
 
 	buf := new(strings.Builder)
-	_, _ = io.Copy(buf, out)
+	io.Copy(buf, out)
 
 	// 处理前后乱码问题
 	str := deletePreAndSufSpace(buf.String())
@@ -85,9 +102,6 @@ func getTrivyResults(cli *client.Client, ctx context.Context, containerID string
 		return result
 	}
 
-	if data != nil && len(data[0].Vulnerabilities) != 0 {
-		fmt.Println(data[0].Vulnerabilities[0].Severity)
-	}
 	result = *data[0]
 	return result
 }
