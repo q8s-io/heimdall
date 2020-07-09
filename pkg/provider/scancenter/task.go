@@ -8,7 +8,7 @@ import (
 )
 
 func CreateTaskImageScan(imageRequestInfo *model.ImageRequestInfo) (*model.TaskImageScanInfo, error) {
-	// preper task
+	// prepare task
 	taskImageScanInfo := convert.TaskImageScanInfoByRequestInfo(imageRequestInfo)
 	taskImageScan := convert.TaskImageScan(taskImageScanInfo, 1)
 	err := repository.NewTaskImageScan(*taskImageScan)

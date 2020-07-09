@@ -6,7 +6,7 @@ import (
 	"github.com/q8s-io/heimdall/pkg/repository"
 )
 
-func PreperJobAnalyzer(taskImageScanInfo *model.TaskImageScanInfo) {
+func PrepareJobAnalyzer(taskImageScanInfo *model.TaskImageScanInfo) {
 	// preper job analyzer
 	jobImageAnalyzerInfo := convert.JobImageAnalyzerInfoByScan(taskImageScanInfo)
 	jobImageAnalyzer := convert.JobImageAnalyzer(jobImageAnalyzerInfo, 1)

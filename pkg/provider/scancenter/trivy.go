@@ -6,7 +6,7 @@ import (
 	"github.com/q8s-io/heimdall/pkg/repository"
 )
 
-func PreperJobTrivy(jobImageAnalyzerInfo *model.JobImageAnalyzerInfo) {
+func PrepareJobTrivy(jobImageAnalyzerInfo *model.JobImageAnalyzerInfo) {
 	// preper job scanner anchore
 	jobTrivyInfo := convert.JobScannerInfoByAnalyzerInfo(jobImageAnalyzerInfo)
 	jobTrivy := convert.JobScanner(jobTrivyInfo, 1)
