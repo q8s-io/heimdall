@@ -7,7 +7,7 @@ import (
 )
 
 func PrepareJobAnchore(jobImageAnalyzerInfo *model.JobImageAnalyzerInfo) {
-	// preper job scanner anchore
+	// prepare job scanner anchore
 	jobAnchoreInfo := convert.JobScannerInfoByAnalyzerInfo(jobImageAnalyzerInfo)
 	jobAnchore := convert.JobScanner(jobAnchoreInfo, 1)
 	repository.NewJobAnchore(*jobAnchore)

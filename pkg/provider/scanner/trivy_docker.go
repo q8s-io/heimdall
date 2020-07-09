@@ -3,7 +3,6 @@ package scanner
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"strings"
@@ -83,9 +82,9 @@ func getTrivyResults(cli *client.Client, ctx context.Context, containerID string
 	result := model.TrivyScanResult{}
 
 	out, cps, err := cli.CopyFromContainer(ctx, containerID, "/root/.cache/result.json")
-	fmt.Println(cps)
+	log.Println(cps)
 	if err != nil {
-		log.Print("copy file from container failed !!!", err)
+		log.Println("copy file from container failed !!!", err)
 		return result
 	}
 

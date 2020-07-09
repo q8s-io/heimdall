@@ -1,10 +1,11 @@
 package scancenter
 
 import (
+	"log"
+
 	"github.com/q8s-io/heimdall/pkg/entity"
 	"github.com/q8s-io/heimdall/pkg/entity/convert"
 	"github.com/q8s-io/heimdall/pkg/entity/model"
-	"log"
 )
 
 func TaskImageScanRotaryCreate(imageRequestInfo *model.ImageRequestInfo) (*model.ImageVulnInfo, error) {
@@ -39,7 +40,6 @@ func TaskImageScanMerger(taskImageScan *entity.TaskImageScan) (interface{}, erro
 	jobAnchoreVuln := GetJobAnchore(taskID)
 	jobTrivyVuln := GetJobTrivy(taskID)
 	imageVulnData := MergerImageVulnData(taskImageScan, jobAnchoreVuln, jobTrivyVuln)
-	// imageVulnData := MergerImageVulnData(taskImageScan, jobTrivyVuln)
 	return imageVulnData, nil
 }
 
@@ -60,21 +60,26 @@ func merge(vulnData *[]map[string]interface{}, cveMap *map[string]int, jobVuln [
 
 	for _, cveData := range jobVuln {
 		idx, exist := (*cveMap)[cveData["cve"]]
-		if !exist { // 不存在
+		// 不存在
+		if !exist {
+			packageElement := make(map[string]string)
+			packageElement["package_name"] = cveData["package_name"]
+			packageElement["package_version"] = cveData["package_version"]
+			packageElement["package_full_nale"] = cveData["package_full_nale"]
+
+			packageInfo := make([]map[string]string, 0)
+			packageInfo = append(packageInfo, packageElement)
+
 			// 每次添加元素都需要重新分配内存，否则都是浅拷贝，会导致切片中的元素都一样。
 			curMap := make(map[string]interface{})
-
 			curMap["cve"] = cveData["cve"]
 			curMap["cve_url"] = cveData["cve_url"]
-			curMap["package_info"] = []map[string]string{
-				{"package_name": cveData["package_name"],
-					"package_version":   cveData["package_version"],
-					"package_full_nale": cveData["package_full_nale"]},
-			}
+			curMap["package_info"] = packageInfo
 
 			*vulnData = append(*vulnData, curMap)
 			(*cveMap)[cveData["cve"]] = len(*vulnData) - 1
-		} else { // 存在
+			// 存在
+		} else {
 			value := (*vulnData)[idx]["package_info"]
 
 			switch value.(type) {
@@ -98,7 +103,7 @@ func merge(vulnData *[]map[string]interface{}, cveMap *map[string]int, jobVuln [
 					(*vulnData)[idx]["package_info"] = pkgList
 				}
 			default:
-				log.Print("process pkg list err !!!")
+				log.Println("process pkg list err !!!")
 			}
 		}
 	}

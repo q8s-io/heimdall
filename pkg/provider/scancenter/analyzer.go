@@ -7,7 +7,7 @@ import (
 )
 
 func PrepareJobAnalyzer(taskImageScanInfo *model.TaskImageScanInfo) {
-	// preper job analyzer
+	// prepare job analyzer
 	jobImageAnalyzerInfo := convert.JobImageAnalyzerInfoByScan(taskImageScanInfo)
 	jobImageAnalyzer := convert.JobImageAnalyzer(jobImageAnalyzerInfo, 1)
 	repository.NewJobImageAnalyzer(*jobImageAnalyzer)
