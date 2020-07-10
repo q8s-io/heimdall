@@ -60,3 +60,15 @@ func UpdateTrivyData(c *gin.Context) {
 
 	ginext.Sender(c, 0, "", "")
 }
+
+func UpdateClairData(c *gin.Context) {
+	jobScannerInfo := new(model.JobScannerInfo)
+	if err := c.ShouldBind(&jobScannerInfo); err != nil {
+		return
+	}
+
+	// update job
+	scancenter.TaskImageScanRotaryClair(jobScannerInfo)
+
+	ginext.Sender(c, 0, "", "")
+}

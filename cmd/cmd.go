@@ -34,6 +34,8 @@ func RunApp(serverTpye string) {
 		RunScannerAnchore()
 	case "scanner-trivy":
 		RunScannerTrivy()
+	case "scanner-clair":
+		RunScannerClair()
 	case "tool":
 		RunTool()
 	default:
@@ -61,6 +63,11 @@ func RunScannerAnchore() {
 func RunScannerTrivy() {
 	kafka.InitConsumer()
 	scanner.JobTrivy()
+}
+
+func RunScannerClair() {
+	kafka.InitConsumer()
+	scanner.JobClair()
 }
 
 func RunTool() {

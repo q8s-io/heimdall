@@ -17,6 +17,10 @@ func SendMsgJobTrivy(jobScannerMsg *model.JobScannerMsg) {
 	kafka.SyncProducerSendMsg("trivy", jobScannerMsg)
 }
 
+func SendMsgJobClair(jobScannerMsg *model.JobScannerMsg) {
+	kafka.SyncProducerSendMsg("clair", jobScannerMsg)
+}
+
 func ConsumerMsgJobImageAnalyzer() {
 	go kafka.ConsumerMsg("analyzer")
 }
@@ -27,4 +31,8 @@ func ConsumerMsgJobAnchore() {
 
 func ConsumerMsgJobTrivy() {
 	go kafka.ConsumerMsg("trivy")
+}
+
+func ConsumerMsgJobClair() {
+	go kafka.ConsumerMsg("clair")
 }

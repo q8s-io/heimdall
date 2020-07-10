@@ -49,8 +49,8 @@ func TrivyScan(imageName string) model.TrivyScanResult {
 	}
 
 	// Create trivy container
-	containerID, err := docker.CreateContainerWithVolume(cli, ctx, containerConfig, hostConfig, volumeName)
-	if err != nil {
+	containerID, crtErr := docker.CreateContainerWithVolume(cli, ctx, containerConfig, hostConfig, "", volumeName)
+	if crtErr != nil {
 		return scanResult
 	}
 
@@ -67,7 +67,7 @@ func TrivyScan(imageName string) model.TrivyScanResult {
 	docker.DeleteContainerWithVolume(cli, ctx, containerID, volumeName)
 
 	// Remove volume
-	_ = docker.RemoveVolumeByName(cli, ctx, volumeName)
+	docker.RemoveVolumeByName(cli, ctx, volumeName)
 
 	// Close client
 	defer cli.Close()
@@ -81,10 +81,8 @@ func getTrivyResults(cli *client.Client, ctx context.Context, containerID string
 	var data []*model.TrivyScanResult
 	result := model.TrivyScanResult{}
 
-	out, cps, err := cli.CopyFromContainer(ctx, containerID, "/root/.cache/result.json")
-	log.Println(cps)
-	if err != nil {
-		log.Println("copy file from container failed !!!", err)
+	out, cpErr := docker.CopyFileFromContainer(cli, ctx, containerID, "/root/.cache/result.json")
+	if cpErr != nil {
 		return result
 	}
 
@@ -92,14 +90,13 @@ func getTrivyResults(cli *client.Client, ctx context.Context, containerID string
 	_, _ = io.Copy(buf, out)
 
 	// 处理前后乱码问题
-	str := deletePreAndSufSpace(buf.String())
-	if len(str) == 0 {
+	bytes := deletePreAndSufSpace(buf.String())
+	if len(bytes) == 0 {
 		return result
 	}
 
-	rdr := strings.NewReader(str)
-	if err := json.NewDecoder(rdr).Decode(&data); err != nil {
-		log.Printf("error deserializing JSON: %v", err)
+	if unmarshalErr := json.Unmarshal(bytes, &data); unmarshalErr != nil {
+		log.Printf("error deserializing JSON: %v", unmarshalErr)
 		return result
 	}
 
@@ -107,7 +104,7 @@ func getTrivyResults(cli *client.Client, ctx context.Context, containerID string
 	return result
 }
 
-func deletePreAndSufSpace(str string) string {
+func deletePreAndSufSpace(str string) []byte {
 	strList := []byte(str)
 	lc, rc := 0, len(strList)-1
 	for ; lc <= rc; lc++ {
@@ -120,5 +117,5 @@ func deletePreAndSufSpace(str string) string {
 			break
 		}
 	}
-	return string(strList[lc : rc+1])
+	return strList[lc : rc+1]
 }

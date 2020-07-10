@@ -21,6 +21,7 @@ version = "v1.40"
 analyzer_url = "http://10.16.29.51:12001/api/images/analyzer/"
 anchore_url = "http://10.16.29.51:12001/api/images/anchore/"
 trivy_url = "http://10.16.29.51:12001/api/images/trivy/"
+clair_url = "http://10.16.29.51:12001/api/images/clair/"
 
 [anchore]
 anchore_url = "http://10.16.29.51:8228"
@@ -30,5 +31,7 @@ password = "foobar"
 [trivy]
 host_url = "http://10.16.29.51:2375"
 version = "v1.40"
+
+
 
 

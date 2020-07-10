@@ -7,7 +7,7 @@ import (
 )
 
 func PrepareJobTrivy(jobImageAnalyzerInfo *model.JobImageAnalyzerInfo) {
-	// preper job scanner anchore
+	// preper job scanner trivy
 	jobTrivyInfo := convert.JobScannerInfoByAnalyzerInfo(jobImageAnalyzerInfo)
 	jobTrivy := convert.JobScanner(jobTrivyInfo, 1)
 	repository.NewJobTrivy(*jobTrivy)
@@ -30,7 +30,7 @@ func GetJobTrivy(taskID string) []map[string]string {
 }
 
 func UpdateJobTrivy(jobScannerInfo *model.JobScannerInfo) {
-	// update job anchore
+	// update job trivy
 	jobTrivy := convert.JobScanner(jobScannerInfo, 1)
 	repository.UpdateJobTrivy(*jobTrivy)
 

@@ -17,7 +17,8 @@ func RunAPI() {
 		images.PUT("/anchore/", controller.UpdateAnchoreData)
 		// update trivy data
 		images.PUT("/trivy/", controller.UpdateTrivyData)
-
+		// update clair data
+		images.PUT("/clair/", controller.UpdateClairData)
 	}
 
 	_ = router.Run(":12001")

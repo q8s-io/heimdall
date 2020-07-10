@@ -34,6 +34,7 @@ type scancenter struct {
 	AnalyzerURL string `toml:"analyzer_url"`
 	AnchoreURL  string `toml:"anchore_url"`
 	TrivyURL    string `toml:"trivy_url"`
+	ClairURL    string `toml:"clair_url"`
 }
 
 type docker struct {

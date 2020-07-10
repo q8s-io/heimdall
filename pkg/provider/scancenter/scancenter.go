@@ -23,6 +23,7 @@ func TaskImageScanRotaryAnalyzer(jobImageAnalyzerInfo *model.JobImageAnalyzerInf
 	UpdateJobImageAnalyzer(jobImageAnalyzerInfo)
 	PrepareJobAnchore(jobImageAnalyzerInfo)
 	PrepareJobTrivy(jobImageAnalyzerInfo)
+	PrepareJobClair(jobImageAnalyzerInfo)
 }
 
 func TaskImageScanRotaryAnchore(jobScannerInfo *model.JobScannerInfo) {
@@ -35,34 +36,45 @@ func TaskImageScanRotaryTrivy(jobScannerInfo *model.JobScannerInfo) {
 	JudgeTaskRotary(jobScannerInfo.TaskID)
 }
 
+func TaskImageScanRotaryClair(jobScannerInfo *model.JobScannerInfo) {
+	UpdateJobClair(jobScannerInfo)
+	JudgeTaskRotary(jobScannerInfo.TaskID)
+}
+
 func TaskImageScanMerger(taskImageScan *entity.TaskImageScan) (interface{}, error) {
 	taskID := taskImageScan.TaskID
 	jobAnchoreVuln := GetJobAnchore(taskID)
 	jobTrivyVuln := GetJobTrivy(taskID)
-	imageVulnData := MergerImageVulnData(taskImageScan, jobAnchoreVuln, jobTrivyVuln)
+	jobClairVuln := GetJobClair(taskID)
+	imageVulnData := MergerImageVulnData(taskImageScan, jobAnchoreVuln, jobTrivyVuln, jobClairVuln)
 	return imageVulnData, nil
 }
 
-func MergerImageVulnData(taskImageScan *entity.TaskImageScan, jobAnchoreVuln []map[string]string, jobTrivyVuln []map[string]string) *model.ImageVulnInfo {
+func MergerImageVulnData(taskImageScan *entity.TaskImageScan, jobAnchoreVuln, jobTrivyVuln, jobClairVuln []map[string]string) *model.ImageVulnInfo {
 	var vulnData []map[string]interface{}
 	cveMap := make(map[string]int)
 
-	merge(&vulnData, &cveMap, jobTrivyVuln)
-	merge(&vulnData, &cveMap, jobAnchoreVuln)
+	merge(&vulnData, &cveMap, "Trivy", jobTrivyVuln)
+	merge(&vulnData, &cveMap, "Anchore", jobAnchoreVuln)
+	merge(&vulnData, &cveMap, "Clair", jobClairVuln)
 
 	taskImageScanInfo := convert.TaskImageScanInfo(taskImageScan)
 	imageVulnInfo := convert.ImageVulnByScanInfo(taskImageScanInfo, vulnData)
 	return imageVulnInfo
 }
 
-// Aggregate engine scan results
-func merge(vulnData *[]map[string]interface{}, cveMap *map[string]int, jobVuln []map[string]string) {
+// Aggregate scanner results
+func merge(vulnData *[]map[string]interface{}, cveMap *map[string]int, engineName string, jobVuln []map[string]string) {
+	if jobVuln == nil {
+		log.Printf("Scanner %s result: null", engineName)
+		return
+	}
 
 	for _, cveData := range jobVuln {
 		idx, exist := (*cveMap)[cveData["cve"]]
 		// 不存在
 		if !exist {
-			packageElement := make(map[string]string)
+			packageElement := make(map[string]string, 3)
 			packageElement["package_name"] = cveData["package_name"]
 			packageElement["package_version"] = cveData["package_version"]
 			packageElement["package_full_nale"] = cveData["package_full_nale"]
@@ -71,7 +83,7 @@ func merge(vulnData *[]map[string]interface{}, cveMap *map[string]int, jobVuln [
 			packageInfo = append(packageInfo, packageElement)
 
 			// 每次添加元素都需要重新分配内存，否则都是浅拷贝，会导致切片中的元素都一样。
-			curMap := make(map[string]interface{})
+			curMap := make(map[string]interface{}, 3)
 			curMap["cve"] = cveData["cve"]
 			curMap["cve_url"] = cveData["cve_url"]
 			curMap["package_info"] = packageInfo
@@ -96,9 +108,11 @@ func merge(vulnData *[]map[string]interface{}, cveMap *map[string]int, jobVuln [
 				}
 
 				if !repeat {
-					newPkg := map[string]string{"package_name": cveData["package_name"],
-						"package_version":   cveData["package_version"],
-						"package_full_nale": cveData["package_full_nale"]}
+					newPkg := make(map[string]string, 3)
+					newPkg["package_name"] = cveData["package_name"]
+					newPkg["package_version"] = cveData["package_version"]
+					newPkg["package_full_nale"] = cveData["package_full_nale"]
+
 					pkgList = append(pkgList, newPkg)
 					(*vulnData)[idx]["package_info"] = pkgList
 				}

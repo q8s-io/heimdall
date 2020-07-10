@@ -32,5 +32,5 @@ func UpdateJobTrivy(jobScanner entity.JobScanner) {
 }
 
 func SetJobTrivyStatus(taskID, status string) {
-	redis.SetMap(taskID, "anchore", status)
+	redis.SetMap(taskID, "trivy", status)
 }
