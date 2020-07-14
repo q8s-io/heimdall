@@ -27,7 +27,7 @@ func JobTrivy() {
 		vulnData := TrivyScan(imageName)
 
 		// prepare trivy scan result
-		jobTrivyInfo := PreperTrivyScanResult(jobScannerMsg, &vulnData)
+		jobTrivyInfo := PrepareTrivyScanResult(jobScannerMsg, &vulnData)
 
 		// send to scancenter
 		requestJSON, _ := json.Marshal(jobTrivyInfo)
@@ -36,7 +36,7 @@ func JobTrivy() {
 	}
 }
 
-func PreperTrivyScanResult(jobScannerMsg *model.JobScannerMsg, vulnData *model.TrivyScanResult) *model.JobScannerInfo {
+func PrepareTrivyScanResult(jobScannerMsg *model.JobScannerMsg, vulnData *model.TrivyScanResult) *model.JobScannerInfo {
 	var cveList []map[string]string
 	for _, vulnInfo := range vulnData.Vulnerabilities {
 		cve := make(map[string]string)

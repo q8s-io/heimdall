@@ -20,7 +20,7 @@ func JobAnchore() {
 		log.Printf("consumer msg from kafka: %s", msg)
 		_ = json.Unmarshal(msg, &jobScannerMsg)
 
-		// preper anchore data
+		// prepare anchore data
 		anchoreRequestInfo := convert.AnchoreRequestInfo(jobScannerMsg)
 
 		// trigger anchore scan
@@ -30,8 +30,8 @@ func JobAnchore() {
 		vulnRequestURL := model.Config.Anchore.AnchoreURL + "/v1/images/" + anchoreRequestInfo.ImageDigest + "/vuln/all"
 		vulnData := AnchoreGET(vulnRequestURL)
 
-		// preper anchore scan result data
-		jobAnchoreInfo := PreperAnchoreScanResult(jobScannerMsg, vulnData)
+		// prepare anchore scan result data
+		jobAnchoreInfo := PrepareAnchoreScanResult(jobScannerMsg, vulnData)
 
 		// send data to scancenter
 		requestJSON, _ := json.Marshal(jobAnchoreInfo)
@@ -52,7 +52,7 @@ RETRY:
 	}
 }
 
-func PreperAnchoreScanResult(jobScannerMsg *model.JobScannerMsg, vulnData map[string]interface{}) *model.JobScannerInfo {
+func PrepareAnchoreScanResult(jobScannerMsg *model.JobScannerMsg, vulnData map[string]interface{}) *model.JobScannerInfo {
 	var cveList []map[string]string
 	for _, vulnInfo := range vulnData["vulnerabilities"].([]interface{}) {
 		cve := make(map[string]string)

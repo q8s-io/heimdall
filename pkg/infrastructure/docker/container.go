@@ -13,36 +13,49 @@ import (
 	"github.com/docker/docker/client"
 )
 
-func CreateContainerWithVolume(cli *client.Client, ctx context.Context, config *container.Config, hostConfig *container.HostConfig, containerName, volumeName string) (string, error) {
+func CreateContainer(cli *client.Client, ctx context.Context, config *container.Config, hostConfig *container.HostConfig, containerName string) (string, error) {
+	body, err := cli.ContainerCreate(ctx, config, hostConfig, nil, containerName)
+	if err != nil {
+		return "", err
+	}
+	return body.ID, nil
+}
 
+func CreateContainerWithVolume(cli *client.Client, ctx context.Context, config *container.Config, hostConfig *container.HostConfig, containerName, volumeName string) (string, error) {
 	// Create volume
 	volErr := createVolume(cli, ctx, volumeName)
 	if volErr != nil {
 		return "", volErr
 	}
-
 	body, createErr := cli.ContainerCreate(ctx, config, hostConfig, nil, containerName)
 	if createErr != nil {
 		_ = RemoveVolumeByName(cli, ctx, volumeName)
 		return "", createErr
 	}
-	log.Printf("create container %s successed !!!", body.ID)
-	return body.ID, nil
-}
-
-func CreateContainer(cli *client.Client, ctx context.Context, config *container.Config, hostConfig *container.HostConfig, containerName string) (string, error) {
-	body, err := cli.ContainerCreate(ctx, config, hostConfig, nil, containerName)
-	if err != nil {
-		log.Printf("create container %s failed !!! %s", containerName, err)
-		return "", err
-	}
-	log.Printf("create container %s successed !!!", body.ID)
 	return body.ID, nil
 }
 
 func DeleteContainerWithVolume(cli *client.Client, ctx context.Context, containerID string, volumeName string) {
 	// 删除容器
 	_, _ = RemoveContainer(cli, ctx, containerID)
+}
+
+func RunContainer(cli *client.Client, ctx context.Context, containerID string) error {
+	// start container.
+	err := StartContainer(cli, ctx, containerID)
+	if err != nil {
+		// 删除容器
+		_, _ = RemoveContainer(cli, ctx, containerID)
+		return err
+	}
+
+RETYR:
+	info, _ := cli.ContainerInspect(ctx, containerID)
+	if info.State.Status == "running" {
+		time.Sleep(3 * time.Second)
+		goto RETYR
+	}
+	return nil
 }
 
 // 保证容器运行结束, 得到结果
@@ -59,25 +72,6 @@ func RunContainerWithVolume(cli *client.Client, ctx context.Context, containerID
 
 RETYR:
 	info, _ := cli.ContainerInspect(ctx, containerID)
-	log.Printf("%s status \t %v\n", containerID, info.State.Status)
-	if info.State.Status == "running" {
-		time.Sleep(3 * time.Second)
-		goto RETYR
-	}
-	return nil
-}
-
-func RunContainer(cli *client.Client, ctx context.Context, containerID string) error {
-	// start container.
-	err := StartContainer(cli, ctx, containerID)
-	if err != nil {
-		// 删除容器
-		_, _ = RemoveContainer(cli, ctx, containerID)
-		return err
-	}
-RETYR:
-	info, _ := cli.ContainerInspect(ctx, containerID)
-	log.Printf("%s status \t %v\n", containerID, info.State.Status)
 	if info.State.Status == "running" {
 		time.Sleep(3 * time.Second)
 		goto RETYR

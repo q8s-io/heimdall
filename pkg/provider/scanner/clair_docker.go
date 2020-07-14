@@ -3,14 +3,16 @@ package scanner
 import (
 	"context"
 	"encoding/json"
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/client"
-	"github.com/q8s-io/heimdall/pkg/entity/model"
-	"github.com/q8s-io/heimdall/pkg/infrastructure/docker"
 	"io"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/client"
+
+	"github.com/q8s-io/heimdall/pkg/entity/model"
+	"github.com/q8s-io/heimdall/pkg/infrastructure/docker"
 )
 
 func ClairScan(imageName string) model.ClairScanResult {
@@ -39,8 +41,10 @@ func ClairScan(imageName string) model.ClairScanResult {
 	// Create klar container
 	containerID, createErr := docker.CreateContainer(cli, ctx, containerConfig, hostConfig, "")
 	if createErr != nil {
+		log.Printf("create container %s failed", containerID)
 		return scanResult
 	}
+
 	// Start klar container
 	runErr := docker.RunContainer(cli, ctx, containerID)
 	if runErr != nil {
@@ -50,7 +54,7 @@ func ClairScan(imageName string) model.ClairScanResult {
 	scanResult = getClairResults(cli, ctx, containerID)
 
 	// Remove container klar
-	docker.RemoveContainer(cli, ctx, containerID)
+	_, _ = docker.RemoveContainer(cli, ctx, containerID)
 
 	// Close client
 	defer cli.Close()

@@ -51,6 +51,7 @@ func TrivyScan(imageName string) model.TrivyScanResult {
 	// Create trivy container
 	containerID, crtErr := docker.CreateContainerWithVolume(cli, ctx, containerConfig, hostConfig, "", volumeName)
 	if crtErr != nil {
+		log.Printf("create container %s failed", containerID)
 		return scanResult
 	}
 
@@ -67,7 +68,7 @@ func TrivyScan(imageName string) model.TrivyScanResult {
 	docker.DeleteContainerWithVolume(cli, ctx, containerID, volumeName)
 
 	// Remove volume
-	docker.RemoveVolumeByName(cli, ctx, volumeName)
+	_ = docker.RemoveVolumeByName(cli, ctx, volumeName)
 
 	// Close client
 	defer cli.Close()

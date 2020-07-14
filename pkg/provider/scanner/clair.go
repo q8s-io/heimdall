@@ -3,11 +3,12 @@ package scanner
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+
 	"github.com/q8s-io/heimdall/pkg/entity/model"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/kafka"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/net"
 	"github.com/q8s-io/heimdall/pkg/repository"
-	"log"
 )
 
 func JobClair() {
