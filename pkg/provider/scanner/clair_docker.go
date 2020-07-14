@@ -17,10 +17,10 @@ import (
 
 func ClairScan(imageName string) model.ClairScanResult {
 	scanResult := model.ClairScanResult{}
-	trivyConfig := model.Config.Trivy
+	clairConfig := model.Config.Clair
 
 	// Create a docker client from remote host
-	cli, err := client.NewClient(trivyConfig.HostURL, trivyConfig.Version, nil, nil)
+	cli, err := client.NewClient(clairConfig.HostURL, clairConfig.Version, nil, nil)
 	if err != nil {
 		log.Println(err)
 		return scanResult
@@ -30,19 +30,28 @@ func ClairScan(imageName string) model.ClairScanResult {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 
 	containerConfig := &container.Config{
-		Image: "klar",
+		Image: model.ClairImage,
 		Cmd:   []string{imageName},
-		Env:   []string{"CLAIR_ADDR=127.0.0.1", "JSON_OUTPUT=true"},
+		Env:   []string{clairConfig.ClairADDR, model.ClairJsonType},
 	}
 	hostConfig := &container.HostConfig{
-		NetworkMode: "host",
+		NetworkMode: container.NetworkMode(model.ClairNetworkMode),
 	}
 
 	// Create klar container
-	containerID, createErr := docker.CreateContainer(cli, ctx, containerConfig, hostConfig, "")
+	containerID, createErr := docker.CreateContainer(cli, ctx, containerConfig, hostConfig, model.ClairContainerName)
 	if createErr != nil {
-		log.Printf("create container %s failed", containerID)
-		return scanResult
+		// 先删除原先重复名字的容器。
+		_, removeErr := docker.RemoveContainer(cli, ctx, model.ClairContainerName)
+		if removeErr != nil {
+			return scanResult
+		} else {
+			containerID, createErr = docker.CreateContainer(cli, ctx, containerConfig, hostConfig, model.ClairContainerName)
+			if createErr != nil {
+				log.Print("删除之前的容器后创建klar容器还有问题！！！")
+				return scanResult
+			}
+		}
 	}
 
 	// Start klar container

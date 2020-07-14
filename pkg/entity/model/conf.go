@@ -10,6 +10,7 @@ type Runtime struct {
 	Docker     docker
 	Anchore    anchore
 	Trivy      trivy
+	Clair      clair
 }
 
 type mysql struct {
@@ -51,4 +52,10 @@ type anchore struct {
 type trivy struct {
 	HostURL string `toml:"host_url"`
 	Version string `toml:"version"`
+}
+
+type clair struct {
+	HostURL   string `toml:"host_url"`
+	Version   string `toml:"version"`
+	ClairADDR string `toml:"clair_addr"`
 }

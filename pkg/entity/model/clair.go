@@ -1,5 +1,12 @@
 package model
 
+const (
+	ClairNetworkMode   string = "host"
+	ClairImage         string = "klar"
+	ClairJsonType      string = "JSON_OUTPUT=true"
+	ClairContainerName string = "klar_container"
+)
+
 type ClairScanResult struct {
 	LayerCount      int             `json:"LayerCount"`
 	Vulnerabilities Vulnerabilities `json:"Vulnerabilities"`

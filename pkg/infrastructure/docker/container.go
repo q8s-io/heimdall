@@ -16,6 +16,7 @@ import (
 func CreateContainer(cli *client.Client, ctx context.Context, config *container.Config, hostConfig *container.HostConfig, containerName string) (string, error) {
 	body, err := cli.ContainerCreate(ctx, config, hostConfig, nil, containerName)
 	if err != nil {
+		log.Printf("container %s create error !!! %s", containerName, err)
 		return "", err
 	}
 	return body.ID, nil
@@ -86,7 +87,6 @@ func StartContainer(cli *client.Client, ctx context.Context, containerID string)
 		log.Printf("container %s start failed !!! %s", containerID, err)
 		return err
 	}
-	log.Printf("container %s start succeed !!!", containerID)
 	return nil
 }
 
@@ -96,7 +96,6 @@ func RemoveContainer(cli *client.Client, ctx context.Context, containerID string
 		log.Printf("remove container %s failed !!! %s", containerID, err)
 		return "", err
 	}
-	log.Printf("remove container %s succeed !!!", containerID)
 	return containerID, nil
 }
 
@@ -109,7 +108,6 @@ func createVolume(cli *client.Client, ctx context.Context, volumeName string) er
 		log.Printf("create volume %s failed !!! %s", volumeName, err)
 		return err
 	}
-	log.Printf("create volume %s successed !!!", volumeName)
 	return nil
 }
 
@@ -120,14 +118,13 @@ func RemoveVolumeByName(cli *client.Client, ctx context.Context, volumeName stri
 		log.Printf("remove volume %s failed !!! %s", volumeName, err)
 		return err
 	}
-	log.Printf("remove volume %s succeed !!!", volumeName)
 	return nil
 }
 
 // Copy file from container by giving path
 func CopyFileFromContainer(cli *client.Client, ctx context.Context, containerID, path string) (io.ReadCloser, error) {
-	out, cps, err := cli.CopyFromContainer(ctx, containerID, path)
-	log.Print(cps)
+	out, _, err := cli.CopyFromContainer(ctx, containerID, path)
+	// log.Print(cps)
 	if err != nil {
 		log.Printf("copy file from container %s failed !!! %s", containerID, err)
 		return nil, err
@@ -143,6 +140,5 @@ func GetContainerLogs(cli *client.Client, ctx context.Context, containerID strin
 		log.Printf("get logs from %s failed !!! %s", containerID, err)
 		return nil, err
 	}
-	log.Printf("get logs from %s successed !!!", containerID)
 	return out, nil
 }
