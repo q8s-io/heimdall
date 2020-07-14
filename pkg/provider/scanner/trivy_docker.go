@@ -89,7 +89,7 @@ func getTrivyResults(cli *client.Client, ctx context.Context, containerID string
 	buf := new(strings.Builder)
 	_, _ = io.Copy(buf, out)
 
-	// 处理前后乱码问题
+	// 去除前后无用字符
 	bytes := deletePreAndSufSpace(buf.String())
 	if len(bytes) == 0 {
 		return result

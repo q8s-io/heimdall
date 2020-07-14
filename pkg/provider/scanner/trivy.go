@@ -34,7 +34,6 @@ func JobTrivy() {
 		log.Printf("trivy process result: %s", string(requestJSON))
 		_ = net.HTTPPUT(model.Config.ScanCenter.TrivyURL, string(requestJSON))
 	}
-
 }
 
 func PreperTrivyScanResult(jobScannerMsg *model.JobScannerMsg, vulnData *model.TrivyScanResult) *model.JobScannerInfo {

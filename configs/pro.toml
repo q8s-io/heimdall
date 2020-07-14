@@ -31,7 +31,3 @@ password = "foobar"
 [trivy]
 host_url = "http://10.16.29.51:2375"
 version = "v1.40"
-
-
-
-
