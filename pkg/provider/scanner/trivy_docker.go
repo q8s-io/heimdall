@@ -21,6 +21,11 @@ func TrivyScan(imageName string) model.TrivyScanResult {
 	scanResult := model.TrivyScanResult{}
 	trivyConfig := model.Config.Trivy
 
+	// 扫描结果的json文件存储位置，路径 + 文件名
+	path := trivyConfig.TargetPath + trivyConfig.FileName
+	containerName := trivyConfig.ContainerName
+	volumeName := trivyConfig.VolumeName
+
 	// Create a docker client from remote host
 	cli, err := client.NewClient(trivyConfig.HostURL, trivyConfig.Version, nil, nil)
 	if err != nil {
@@ -31,27 +36,25 @@ func TrivyScan(imageName string) model.TrivyScanResult {
 	// The runtime of limits is 10 minute
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 
-	// Init config of trivy container
-	volumeName := "trivy_vol" // volume name
+	// Initialize config of trivy container
 	containerConfig := &container.Config{
-		Image: "aquasec/trivy",
-		Cmd:   []string{"-f", "json", "-o", "/root/.cache/result.json", imageName},
+		Image: trivyConfig.Image,
+		Cmd:   append(trivyConfig.ContainerCMD, path, imageName),
 	}
 	hostConfig := &container.HostConfig{
 		Mounts: []mount.Mount{
 			{
 				Type:     mount.TypeVolume,
 				Source:   volumeName,
-				Target:   "/root/.cache/",
+				Target:   trivyConfig.TargetPath,
 				ReadOnly: false,
 			},
 		},
 	}
 
 	// Create trivy container
-	containerID, crtErr := docker.CreateContainerWithVolume(cli, ctx, containerConfig, hostConfig, "", volumeName)
+	containerID, crtErr := docker.CreateContainerWithVolume(cli, ctx, containerConfig, hostConfig, containerName, volumeName)
 	if crtErr != nil {
-		log.Printf("create container %s failed", containerID)
 		return scanResult
 	}
 
@@ -62,7 +65,7 @@ func TrivyScan(imageName string) model.TrivyScanResult {
 	}
 
 	// Get result
-	scanResult = getTrivyResults(cli, ctx, containerID)
+	scanResult = getTrivyResults(cli, ctx, containerID, path)
 
 	// Delete container trivy
 	docker.DeleteContainerWithVolume(cli, ctx, containerID, volumeName)
@@ -78,11 +81,11 @@ func TrivyScan(imageName string) model.TrivyScanResult {
 	return scanResult
 }
 
-func getTrivyResults(cli *client.Client, ctx context.Context, containerID string) model.TrivyScanResult {
+func getTrivyResults(cli *client.Client, ctx context.Context, containerID string, path string) model.TrivyScanResult {
 	var data []*model.TrivyScanResult
 	result := model.TrivyScanResult{}
 
-	out, cpErr := docker.CopyFileFromContainer(cli, ctx, containerID, "/root/.cache/result.json")
+	out, cpErr := docker.CopyFileFromContainer(cli, ctx, containerID, path)
 	if cpErr != nil {
 		return result
 	}

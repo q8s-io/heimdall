@@ -31,8 +31,17 @@ password = "foobar"
 [trivy]
 host_url = "http://10.16.29.51:2375"
 version = "v1.40"
+image = "aquasec/trivy"
+containerName = "trivy_container"
+volume_name = "trivy_vol"
+target_path = "/root/.cache/"
+file_name = "result.json"
+container_cmd = ["-f", "json", "-o"]
+
 
 [clair]
 host_url = "http://10.16.29.51:2375"
 version = "v1.40"
 clair_addr = "CLAIR_ADDR=127.0.0.1"
+image = "klar"
+containerName = "klar_container"

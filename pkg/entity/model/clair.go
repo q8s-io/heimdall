@@ -1,10 +1,8 @@
 package model
 
 const (
-	ClairNetworkMode   string = "host"
-	ClairImage         string = "klar"
-	ClairJsonType      string = "JSON_OUTPUT=true"
-	ClairContainerName string = "klar_container"
+	ClairNetworkMode string = "host"
+	ClairJsonType    string = "JSON_OUTPUT=true"
 )
 
 type ClairScanResult struct {

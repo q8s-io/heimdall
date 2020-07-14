@@ -17,7 +17,17 @@ func CreateContainer(cli *client.Client, ctx context.Context, config *container.
 	body, err := cli.ContainerCreate(ctx, config, hostConfig, nil, containerName)
 	if err != nil {
 		log.Printf("container %s create error !!! %s", containerName, err)
-		return "", err
+		// 先删除之前的容器
+		_, removeErr := RemoveContainer(cli, ctx, containerName)
+		if removeErr != nil {
+			return "", removeErr
+		}
+
+		body, err = cli.ContainerCreate(ctx, config, hostConfig, nil, containerName)
+		if err != nil {
+			log.Printf("删除之前的容器后再创建%s容器还有问题！！！", containerName)
+			return "", err
+		}
 	}
 	return body.ID, nil
 }
@@ -28,12 +38,12 @@ func CreateContainerWithVolume(cli *client.Client, ctx context.Context, config *
 	if volErr != nil {
 		return "", volErr
 	}
-	body, createErr := cli.ContainerCreate(ctx, config, hostConfig, nil, containerName)
+	id, createErr := CreateContainer(cli, ctx, config, hostConfig, containerName)
 	if createErr != nil {
 		_ = RemoveVolumeByName(cli, ctx, volumeName)
 		return "", createErr
 	}
-	return body.ID, nil
+	return id, nil
 }
 
 func DeleteContainerWithVolume(cli *client.Client, ctx context.Context, containerID string, volumeName string) {
