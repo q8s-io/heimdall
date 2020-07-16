@@ -3,7 +3,7 @@ package repository
 import (
 	"database/sql"
 	"log"
-	
+
 	"github.com/q8s-io/heimdall/pkg/entity"
 	"github.com/q8s-io/heimdall/pkg/entity/model"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/mysql"
@@ -43,7 +43,7 @@ func GetTaskImageScan(imageRequestInfo model.ImageRequestInfo) *[]entity.TaskIma
 }
 
 func UpdateTaskImageScanDigest(taskID, igest string) {
-	rows, err := mysql.Client.Model(&entity.ImageVuln{}).Update("image_digest", igest).Scopes(mysql.QuerytByTaskID(taskID)).Rows()
+	rows, err := mysql.Client.Model(&entity.ImageVuln{}).Update("image_digest", igest).Scopes(mysql.QueryByTaskID(taskID)).Rows()
 	if err != nil {
 		log.Print(err)
 		return
@@ -52,7 +52,7 @@ func UpdateTaskImageScanDigest(taskID, igest string) {
 }
 
 func UpdateTaskImageScanStatus(taskID, status string) {
-	rows, err := mysql.Client.Model(&entity.ImageVuln{}).Update("task_status", status).Scopes(mysql.QuerytByTaskID(taskID)).Rows()
+	rows, err := mysql.Client.Model(&entity.ImageVuln{}).Update("task_status", status).Scopes(mysql.QueryByTaskID(taskID)).Rows()
 	if err != nil {
 		log.Print(err)
 		return

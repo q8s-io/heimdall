@@ -2,7 +2,7 @@ package repository
 
 import (
 	"log"
-	
+
 	"github.com/q8s-io/heimdall/pkg/entity"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/mysql"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/redis"
@@ -16,7 +16,7 @@ func NewJobClair(jobScanner entity.JobScanner) {
 
 func GetJobClair(taskID string) *[]entity.JobScanner {
 	jobClairDataList := new([]entity.JobScanner)
-	rows, err := mysql.Client.Model(&entity.JobClair{}).Scopes(mysql.QuerytByTaskID(taskID)).Rows()
+	rows, err := mysql.Client.Model(&entity.JobClair{}).Scopes(mysql.QueryByTaskID(taskID)).Rows()
 	if err != nil {
 		log.Print(err)
 		return jobClairDataList
@@ -34,7 +34,7 @@ func GetJobClair(taskID string) *[]entity.JobScanner {
 func UpdateJobClair(jobScanner entity.JobScanner) {
 	jobClair := entity.JobClair{}
 	jobClair.JobScanner = jobScanner
-	rows, err := mysql.Client.Model(&entity.JobClair{}).Updates(jobClair).Scopes(mysql.QuerytByTaskID(jobScanner.JobID)).Rows()
+	rows, err := mysql.Client.Model(&entity.JobClair{}).Updates(jobClair).Scopes(mysql.QueryByJobID(jobScanner.JobID)).Rows()
 	if err != nil {
 		log.Print(err)
 		return

@@ -15,7 +15,7 @@ func NewJobAnchore(jobScanner entity.JobScanner) {
 }
 
 func GetJobAnchore(taskID string) *[]entity.JobScanner {
-	rows, err := mysql.Client.Model(&entity.JobAnchore{}).Scopes(mysql.QuerytByTaskID(taskID)).Rows()
+	rows, err := mysql.Client.Model(&entity.JobAnchore{}).Scopes(mysql.QueryByTaskID(taskID)).Rows()
 	jobAnchoreDataList := new([]entity.JobScanner)
 	if err != nil {
 		log.Print(err)
@@ -33,7 +33,8 @@ func GetJobAnchore(taskID string) *[]entity.JobScanner {
 func UpdateJobAnchore(jobScanner entity.JobScanner) {
 	jobAnchore := entity.JobAnchore{}
 	jobAnchore.JobScanner = jobScanner
-	rows, err := mysql.Client.Model(&entity.JobAnchore{}).Updates(jobAnchore).Scopes(mysql.QuerytByTaskID(jobScanner.JobID)).Rows()
+	rows, err := mysql.Client.Model(&entity.JobAnchore{}).Updates(jobAnchore).
+		Scopes(mysql.QueryByJobID(jobScanner.JobID)).Rows()
 	if err != nil {
 		log.Print(err)
 		return

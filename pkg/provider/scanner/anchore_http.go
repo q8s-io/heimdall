@@ -11,7 +11,7 @@ import (
 	"github.com/q8s-io/heimdall/pkg/entity/model"
 )
 
-func AnchoreGET(reqURL string) map[string]interface{} {
+func AnchoreGET(reqURL string) (map[string]interface{}, error) {
 	req, _ := http.NewRequest("GET", reqURL, nil)
 	req.SetBasicAuth(model.Config.Anchore.UserName, model.Config.Anchore.PassWord)
 	c := &http.Client{
@@ -20,16 +20,17 @@ func AnchoreGET(reqURL string) map[string]interface{} {
 	res, perr := c.Do(req)
 	if perr != nil {
 		log.Println(perr)
-		return nil
+		return nil, perr
 	}
 	resBody, berr := ioutil.ReadAll(res.Body)
 	_ = res.Body.Close()
 	if berr != nil {
 		log.Println(berr)
+		return nil, berr
 	}
 	responeDate := make(map[string]interface{}, 1)
 	_ = json.Unmarshal(resBody, &responeDate)
-	return responeDate
+	return responeDate, nil
 }
 
 func AnchorePOST(reqURL, reqData string) []map[string]interface{} {

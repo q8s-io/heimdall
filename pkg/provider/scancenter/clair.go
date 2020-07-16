@@ -35,5 +35,5 @@ func UpdateJobClair(jobScannerInfo *model.JobScannerInfo) {
 	repository.UpdateJobClair(*jobClair)
 
 	// mark job status
-	repository.SetJobClairStatus(jobClair.TaskID, model.StatusSucceed)
+	repository.SetJobClairStatus(jobClair.TaskID, jobScannerInfo.JobStatus)
 }

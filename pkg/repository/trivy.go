@@ -2,7 +2,7 @@ package repository
 
 import (
 	"log"
-	
+
 	"github.com/q8s-io/heimdall/pkg/entity"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/mysql"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/redis"
@@ -16,7 +16,7 @@ func NewJobTrivy(jobScanner entity.JobScanner) {
 
 func GetJobTrivy(taskID string) *[]entity.JobScanner {
 	jobTrivyDataList := new([]entity.JobScanner)
-	rows, err := mysql.Client.Model(&entity.JobTrivy{}).Scopes(mysql.QuerytByTaskID(taskID)).Rows()
+	rows, err := mysql.Client.Model(&entity.JobTrivy{}).Scopes(mysql.QueryByTaskID(taskID)).Rows()
 	if err != nil {
 		log.Print(err)
 		return jobTrivyDataList
@@ -35,7 +35,7 @@ func GetJobTrivy(taskID string) *[]entity.JobScanner {
 func UpdateJobTrivy(jobScanner entity.JobScanner) {
 	jobTrivy := entity.JobTrivy{}
 	jobTrivy.JobScanner = jobScanner
-	rows, err := mysql.Client.Model(&entity.JobTrivy{}).Updates(jobTrivy).Scopes(mysql.QuerytByTaskID(jobScanner.JobID)).Rows()
+	rows, err := mysql.Client.Model(&entity.JobTrivy{}).Updates(jobTrivy).Scopes(mysql.QueryByJobID(jobScanner.JobID)).Rows()
 	if err != nil {
 		log.Print(err)
 		return

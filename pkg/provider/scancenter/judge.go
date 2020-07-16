@@ -3,6 +3,7 @@ package scancenter
 import (
 	"github.com/q8s-io/heimdall/pkg/entity/model"
 	"github.com/q8s-io/heimdall/pkg/repository"
+	"log"
 )
 
 func JudgeTask(imageRequestInfo *model.ImageRequestInfo) (interface{}, error) {
@@ -38,18 +39,30 @@ func JudgeTaskRotary(taskID string) {
 	// judge status
 	currentStatus := GetTaskCurrentStatus(taskID)
 	// mark task status
-	if currentStatus == model.StatusSucceed {
-		repository.UpdateTaskImageScanStatus(taskID, model.StatusSucceed)
+	if currentStatus != model.StatusRunning {
+		repository.UpdateTaskImageScanStatus(taskID, currentStatus)
 		repository.DeleteTask(taskID)
 	}
 }
 
 func GetTaskCurrentStatus(taskID string) string {
 	taskStatus := repository.GetTaskStatus(taskID)
+	// count success num
+	succeedNum := 0
+
 	for _, v := range taskStatus {
-		if v != "succeed" {
-			return v
+		// 若还有在运行的引擎，直接返回运行态
+		if v == model.StatusRunning {
+			return model.StatusRunning
+		}
+		if v == model.StatusSucceed {
+			succeedNum++
 		}
 	}
-	return model.StatusSucceed
+	// 大于等于1就成功，否则失败。
+	if succeedNum > 1 {
+		log.Print("运行成功的引擎个数：", succeedNum)
+		return model.StatusSucceed
+	}
+	return model.StatusFailed
 }

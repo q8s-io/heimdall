@@ -24,10 +24,10 @@ func JobClair() {
 		imageName := jobScannerMsg.ImageName
 
 		// get scanning data
-		vulnData := ClairScan(imageName)
+		vulnData, getErr := ClairScan(imageName)
 
 		// prepare clair scan result
-		jobClairInfo := PrepareClairScanResult(jobScannerMsg, &vulnData)
+		jobClairInfo := PrepareClairScanResult(jobScannerMsg, &vulnData, getErr)
 
 		// send to scancenter
 		requestJSON, _ := json.Marshal(jobClairInfo)
@@ -36,7 +36,7 @@ func JobClair() {
 	}
 }
 
-func PrepareClairScanResult(jobScannerMsg *model.JobScannerMsg, vulnData *model.ClairScanResult) *model.JobScannerInfo {
+func PrepareClairScanResult(jobScannerMsg *model.JobScannerMsg, vulnData *model.ClairScanResult, err error) *model.JobScannerInfo {
 	var cveList []map[string]string
 
 	vulnerabilities := vulnData.Vulnerabilities
@@ -51,7 +51,11 @@ func PrepareClairScanResult(jobScannerMsg *model.JobScannerMsg, vulnData *model.
 	jobScannerInfo := new(model.JobScannerInfo)
 	jobScannerInfo.TaskID = jobScannerMsg.TaskID
 	jobScannerInfo.JobID = jobScannerMsg.JobID
-	jobScannerInfo.JobStatus = model.StatusSucceed
+	if err != nil {
+		jobScannerInfo.JobStatus = model.StatusFailed
+	} else {
+		jobScannerInfo.JobStatus = model.StatusSucceed
+	}
 	jobScannerInfo.JobData = cveList
 
 	return jobScannerInfo

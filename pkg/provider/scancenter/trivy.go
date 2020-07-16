@@ -35,5 +35,5 @@ func UpdateJobTrivy(jobScannerInfo *model.JobScannerInfo) {
 	repository.UpdateJobTrivy(*jobTrivy)
 
 	// mark job status
-	repository.SetJobTrivyStatus(jobTrivy.TaskID, model.StatusSucceed)
+	repository.SetJobTrivyStatus(jobTrivy.TaskID, jobScannerInfo.JobStatus)
 }

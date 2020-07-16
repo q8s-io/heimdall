@@ -15,7 +15,7 @@ import (
 	"github.com/q8s-io/heimdall/pkg/infrastructure/docker"
 )
 
-func ClairScan(imageName string) model.ClairScanResult {
+func ClairScan(imageName string) (model.ClairScanResult, error) {
 	scanResult := model.ClairScanResult{}
 	clairConfig := model.Config.Clair
 	containerName := clairConfig.ContainerName
@@ -24,7 +24,7 @@ func ClairScan(imageName string) model.ClairScanResult {
 	cli, err := client.NewClient(clairConfig.HostURL, clairConfig.Version, nil, nil)
 	if err != nil {
 		log.Println(err)
-		return scanResult
+		return scanResult, err
 	}
 
 	// The limits of container runtime is 10 minute
@@ -42,17 +42,19 @@ func ClairScan(imageName string) model.ClairScanResult {
 	// Create klar container
 	containerID, createErr := docker.CreateContainer(cli, ctx, containerConfig, hostConfig, containerName)
 	if createErr != nil {
-		return scanResult
+		return scanResult, createErr
 	}
 
 	// Start klar container
 	runErr := docker.RunContainer(cli, ctx, containerID)
 	if runErr != nil {
-		return scanResult
+		return scanResult, runErr
 	}
 
-	scanResult = getClairResults(cli, ctx, containerID)
-
+	scanResult, scanErr := getClairResults(cli, ctx, containerID)
+	if scanErr != nil {
+		return scanResult, scanErr
+	}
 	// Remove container klar
 	_, _ = docker.RemoveContainer(cli, ctx, containerID)
 
@@ -61,15 +63,15 @@ func ClairScan(imageName string) model.ClairScanResult {
 	// Close context
 	defer cancel()
 
-	return scanResult
+	return scanResult, nil
 }
 
-func getClairResults(cli *client.Client, ctx context.Context, containerID string) model.ClairScanResult {
+func getClairResults(cli *client.Client, ctx context.Context, containerID string) (model.ClairScanResult, error) {
 	result := model.ClairScanResult{}
 
 	out, logErr := docker.GetContainerLogs(cli, ctx, containerID)
 	if logErr != nil {
-		return result
+		return result, logErr
 	}
 
 	buf := new(strings.Builder)
@@ -78,13 +80,12 @@ func getClairResults(cli *client.Client, ctx context.Context, containerID string
 	bytes := deletePreChar(buf.String())
 	if len(bytes) == 0 {
 		log.Print("日志长度为0 !!!")
-		return result
 	}
 	if unmarshalErr := json.Unmarshal(bytes, &result); unmarshalErr != nil {
 		log.Printf("error deserializing JSON: %s", unmarshalErr)
-		return result
+		return result, unmarshalErr
 	}
-	return result
+	return result, nil
 }
 
 func deletePreChar(str string) []byte {
@@ -107,9 +108,9 @@ func deletePreChar(str string) []byte {
 		switch {
 		case ch > '~':
 			chList[i] = ' '
-		// case ch == '\r':
-		// case ch == '\n':
-		// case ch == '\t':
+		case ch == '\r':
+		case ch == '\n':
+		case ch == '\t':
 		case ch < ' ':
 			chList[i] = ' '
 		}

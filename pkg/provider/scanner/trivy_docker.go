@@ -17,7 +17,7 @@ import (
 	"github.com/q8s-io/heimdall/pkg/entity/model"
 )
 
-func TrivyScan(imageName string) model.TrivyScanResult {
+func TrivyScan(imageName string) (model.TrivyScanResult, error) {
 	scanResult := model.TrivyScanResult{}
 	trivyConfig := model.Config.Trivy
 
@@ -30,7 +30,7 @@ func TrivyScan(imageName string) model.TrivyScanResult {
 	cli, err := client.NewClient(trivyConfig.HostURL, trivyConfig.Version, nil, nil)
 	if err != nil {
 		log.Println(err)
-		return scanResult
+		return scanResult, err
 	}
 
 	// The runtime of limits is 10 minute
@@ -55,18 +55,20 @@ func TrivyScan(imageName string) model.TrivyScanResult {
 	// Create trivy container
 	containerID, crtErr := docker.CreateContainerWithVolume(cli, ctx, containerConfig, hostConfig, containerName, volumeName)
 	if crtErr != nil {
-		return scanResult
+		return scanResult, crtErr
 	}
 
 	// Run trivy container in id
 	runErr := docker.RunContainerWithVolume(cli, ctx, containerID, volumeName)
 	if runErr != nil {
-		return scanResult
+		return scanResult, runErr
 	}
 
 	// Get result
-	scanResult = getTrivyResults(cli, ctx, containerID, path)
-
+	scanResult, getErr := getTrivyResults(cli, ctx, containerID, path)
+	if getErr != nil {
+		return scanResult, getErr
+	}
 	// Delete container trivy
 	docker.DeleteContainerWithVolume(cli, ctx, containerID, volumeName)
 
@@ -78,16 +80,16 @@ func TrivyScan(imageName string) model.TrivyScanResult {
 	// Close context
 	defer cancel()
 
-	return scanResult
+	return scanResult, nil
 }
 
-func getTrivyResults(cli *client.Client, ctx context.Context, containerID string, path string) model.TrivyScanResult {
+func getTrivyResults(cli *client.Client, ctx context.Context, containerID string, path string) (model.TrivyScanResult, error) {
 	var data []*model.TrivyScanResult
 	result := model.TrivyScanResult{}
 
 	out, cpErr := docker.CopyFileFromContainer(cli, ctx, containerID, path)
 	if cpErr != nil {
-		return result
+		return result, cpErr
 	}
 
 	buf := new(strings.Builder)
@@ -96,16 +98,15 @@ func getTrivyResults(cli *client.Client, ctx context.Context, containerID string
 	// 去除前后无用字符
 	bytes := deletePreAndSufSpace(buf.String())
 	if len(bytes) == 0 {
-		return result
 	}
 
 	if unmarshalErr := json.Unmarshal(bytes, &data); unmarshalErr != nil {
 		log.Printf("error deserializing JSON: %v", unmarshalErr)
-		return result
+		return result, unmarshalErr
 	}
 
 	result = *data[0]
-	return result
+	return result, nil
 }
 
 func deletePreAndSufSpace(str string) []byte {

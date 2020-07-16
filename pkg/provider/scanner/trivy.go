@@ -24,10 +24,10 @@ func JobTrivy() {
 		imageName := jobScannerMsg.ImageName
 
 		// get scanning data
-		vulnData := TrivyScan(imageName)
+		vulnData, getErr := TrivyScan(imageName)
 
 		// prepare trivy scan result
-		jobTrivyInfo := PrepareTrivyScanResult(jobScannerMsg, &vulnData)
+		jobTrivyInfo := PrepareTrivyScanResult(jobScannerMsg, &vulnData, getErr)
 
 		// send to scancenter
 		requestJSON, _ := json.Marshal(jobTrivyInfo)
@@ -36,7 +36,7 @@ func JobTrivy() {
 	}
 }
 
-func PrepareTrivyScanResult(jobScannerMsg *model.JobScannerMsg, vulnData *model.TrivyScanResult) *model.JobScannerInfo {
+func PrepareTrivyScanResult(jobScannerMsg *model.JobScannerMsg, vulnData *model.TrivyScanResult, err error) *model.JobScannerInfo {
 	var cveList []map[string]string
 	for _, vulnInfo := range vulnData.Vulnerabilities {
 		cve := make(map[string]string)
@@ -53,7 +53,12 @@ func PrepareTrivyScanResult(jobScannerMsg *model.JobScannerMsg, vulnData *model.
 	jobScannerInfo := new(model.JobScannerInfo)
 	jobScannerInfo.TaskID = jobScannerMsg.TaskID
 	jobScannerInfo.JobID = jobScannerMsg.JobID
-	jobScannerInfo.JobStatus = model.StatusSucceed
+	// 判断运行过程是否异常。
+	if err != nil {
+		jobScannerInfo.JobStatus = model.StatusFailed
+	} else {
+		jobScannerInfo.JobStatus = model.StatusSucceed
+	}
 	jobScannerInfo.JobData = cveList
 
 	return jobScannerInfo

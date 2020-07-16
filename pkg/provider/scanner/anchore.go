@@ -28,10 +28,10 @@ func JobAnchore() {
 
 		// get anchore scan data
 		vulnRequestURL := model.Config.Anchore.AnchoreURL + "/v1/images/" + anchoreRequestInfo.ImageDigest + "/vuln/all"
-		vulnData := AnchoreGET(vulnRequestURL)
+		vulnData, getErr := AnchoreGET(vulnRequestURL)
 
 		// prepare anchore scan result data
-		jobAnchoreInfo := PrepareAnchoreScanResult(jobScannerMsg, vulnData)
+		jobAnchoreInfo := PrepareAnchoreScanResult(jobScannerMsg, vulnData, getErr)
 
 		// send data to scancenter
 		requestJSON, _ := json.Marshal(jobAnchoreInfo)
@@ -52,7 +52,7 @@ RETRY:
 	}
 }
 
-func PrepareAnchoreScanResult(jobScannerMsg *model.JobScannerMsg, vulnData map[string]interface{}) *model.JobScannerInfo {
+func PrepareAnchoreScanResult(jobScannerMsg *model.JobScannerMsg, vulnData map[string]interface{}, err error) *model.JobScannerInfo {
 	var cveList []map[string]string
 	for _, vulnInfo := range vulnData["vulnerabilities"].([]interface{}) {
 		cve := make(map[string]string)
@@ -66,7 +66,12 @@ func PrepareAnchoreScanResult(jobScannerMsg *model.JobScannerMsg, vulnData map[s
 	jobScannerInfo := new(model.JobScannerInfo)
 	jobScannerInfo.TaskID = jobScannerMsg.TaskID
 	jobScannerInfo.JobID = jobScannerMsg.JobID
-	jobScannerInfo.JobStatus = model.StatusSucceed
+	if err != nil {
+		jobScannerInfo.JobStatus = model.StatusFailed
+	} else {
+		jobScannerInfo.JobStatus = model.StatusSucceed
+	}
+
 	jobScannerInfo.JobData = cveList
 	return jobScannerInfo
 }

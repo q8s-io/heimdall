@@ -33,5 +33,5 @@ func UpdateJobAnchore(jobScannerInfo *model.JobScannerInfo) {
 	jobAnchore := convert.JobScanner(jobScannerInfo, 1)
 	repository.UpdateJobAnchore(*jobAnchore)
 	// mark job status
-	repository.SetJobAnchoreStatus(jobAnchore.TaskID, model.StatusSucceed)
+	repository.SetJobAnchoreStatus(jobAnchore.TaskID, jobScannerInfo.JobStatus)
 }
