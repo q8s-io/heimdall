@@ -2,11 +2,12 @@ package repository
 
 import (
 	"database/sql"
+	"log"
+	
 	"github.com/q8s-io/heimdall/pkg/entity"
 	"github.com/q8s-io/heimdall/pkg/entity/model"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/mysql"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/redis"
-	"log"
 )
 
 func NewTaskImageScan(taskImageScan entity.TaskImageScan) error {
@@ -35,7 +36,7 @@ func GetTaskImageScan(imageRequestInfo model.ImageRequestInfo) *[]entity.TaskIma
 	for rows.Next() {
 		var imageVuln entity.ImageVuln
 		// 将sql.Rows扫描到entity中
-		mysql.Client.ScanRows(rows, &imageVuln)
+		_ = mysql.Client.ScanRows(rows, &imageVuln)
 		*taskImageScanList = append(*taskImageScanList, imageVuln.TaskImageScan)
 	}
 	return taskImageScanList

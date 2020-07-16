@@ -24,7 +24,7 @@ func GetJobAnchore(taskID string) *[]entity.JobScanner {
 	defer rows.Close()
 	for rows.Next() {
 		var jobAnchore entity.JobAnchore
-		mysql.Client.ScanRows(rows, &jobAnchore)
+		_ = mysql.Client.ScanRows(rows, &jobAnchore)
 		*jobAnchoreDataList = append(*jobAnchoreDataList, jobAnchore.JobScanner)
 	}
 	return jobAnchoreDataList

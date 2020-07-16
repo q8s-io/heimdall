@@ -1,10 +1,11 @@
 package repository
 
 import (
+	"log"
+	
 	"github.com/q8s-io/heimdall/pkg/entity"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/mysql"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/redis"
-	"log"
 )
 
 func NewJobImageAnalyzer(jobImageAnalyzer entity.JobImageAnalyzer) {

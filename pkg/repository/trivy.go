@@ -1,10 +1,11 @@
 package repository
 
 import (
+	"log"
+	
 	"github.com/q8s-io/heimdall/pkg/entity"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/mysql"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/redis"
-	"log"
 )
 
 func NewJobTrivy(jobScanner entity.JobScanner) {
@@ -24,7 +25,7 @@ func GetJobTrivy(taskID string) *[]entity.JobScanner {
 
 	for rows.Next() {
 		var jobTrivy entity.JobTrivy
-		mysql.Client.ScanRows(rows, &jobTrivy)
+		_ = mysql.Client.ScanRows(rows, &jobTrivy)
 		*jobTrivyDataList = append(*jobTrivyDataList, jobTrivy.JobScanner)
 	}
 
