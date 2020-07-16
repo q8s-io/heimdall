@@ -134,7 +134,6 @@ func RemoveVolumeByName(cli *client.Client, ctx context.Context, volumeName stri
 // Copy file from container by giving path
 func CopyFileFromContainer(cli *client.Client, ctx context.Context, containerID, path string) (io.ReadCloser, error) {
 	out, _, err := cli.CopyFromContainer(ctx, containerID, path)
-	// log.Print(cps)
 	if err != nil {
 		log.Printf("copy file from container %s failed !!! %s", containerID, err)
 		return nil, err

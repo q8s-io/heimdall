@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"fmt"
 	"github.com/q8s-io/heimdall/pkg/entity"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/mysql"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/redis"
@@ -9,26 +8,37 @@ import (
 )
 
 func NewJobClair(jobScanner entity.JobScanner) {
-	execSQL := fmt.Sprintf("INSERT INTO job_clair (task_id, job_id, job_status, job_data, image_name, image_digest, create_time, active) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', %d)",
-		jobScanner.TaskID, jobScanner.JobID, jobScanner.JobStatus, jobScanner.JobData, jobScanner.ImageName, jobScanner.ImageDigest, jobScanner.CreateTime, jobScanner.Active)
-	_ = mysql.InserData(execSQL)
+	jobClair := entity.JobClair{}
+	jobClair.JobScanner = jobScanner
+	mysql.Client.Create(&jobClair)
 }
 
 func GetJobClair(taskID string) *[]entity.JobScanner {
-	execSQL := fmt.Sprintf("SELECT task_id, job_id, job_status, job_data FROM job_clair WHERE task_id='%s'",
-		taskID)
 	jobClairDataList := new([]entity.JobScanner)
-	err := mysql.Client.Select(jobClairDataList, execSQL)
+	rows, err := mysql.Client.Model(&entity.JobClair{}).Scopes(mysql.QuerytByTaskID(taskID)).Rows()
 	if err != nil {
-		log.Println(err)
+		log.Print(err)
+		return jobClairDataList
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var jobClair entity.JobClair
+		mysql.Client.ScanRows(rows, &jobClair)
+		*jobClairDataList = append(*jobClairDataList, jobClair.JobScanner)
 	}
 	return jobClairDataList
 }
 
 func UpdateJobClair(jobScanner entity.JobScanner) {
-	execSQL := fmt.Sprintf("UPDATE job_clair SET job_status='%s', job_data='%s' WHERE job_id='%s'",
-		jobScanner.JobStatus, jobScanner.JobData, jobScanner.JobID)
-	_ = mysql.InserData(execSQL)
+	jobClair := entity.JobClair{}
+	jobClair.JobScanner = jobScanner
+	rows, err := mysql.Client.Model(&entity.JobClair{}).Updates(jobClair).Scopes(mysql.QuerytByTaskID(jobScanner.JobID)).Rows()
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	defer rows.Close()
 }
 
 func SetJobClairStatus(taskID, status string) {

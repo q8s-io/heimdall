@@ -52,6 +52,7 @@ func TaskImageScanMerger(taskImageScan *entity.TaskImageScan) (interface{}, erro
 
 func MergerImageVulnData(taskImageScan *entity.TaskImageScan, jobAnchoreVuln, jobTrivyVuln, jobClairVuln []map[string]string) *model.ImageVulnInfo {
 	var vulnData []map[string]interface{}
+	// key: cveID  value: index in vulnData。
 	cveMap := make(map[string]int)
 
 	merge(&vulnData, &cveMap, "Trivy", jobTrivyVuln)
@@ -63,9 +64,10 @@ func MergerImageVulnData(taskImageScan *entity.TaskImageScan, jobAnchoreVuln, jo
 	return imageVulnInfo
 }
 
-// Aggregate scanner results
+// Aggregate scan results
 func merge(vulnData *[]map[string]interface{}, cveMap *map[string]int, engineName string, jobVuln []map[string]string) {
-	if jobVuln == nil {
+	// 输出结果为空的引擎
+	if jobVuln == nil || len(jobVuln) == 0 {
 		log.Printf("Scanner %s result: null", engineName)
 		return
 	}
@@ -90,8 +92,7 @@ func merge(vulnData *[]map[string]interface{}, cveMap *map[string]int, engineNam
 
 			*vulnData = append(*vulnData, curMap)
 			(*cveMap)[cveData["cve"]] = len(*vulnData) - 1
-			// 存在
-		} else {
+		} else { // 存在
 			value := (*vulnData)[idx]["package_info"]
 
 			switch value.(type) {

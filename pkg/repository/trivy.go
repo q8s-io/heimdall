@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"fmt"
 	"github.com/q8s-io/heimdall/pkg/entity"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/mysql"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/redis"
@@ -9,26 +8,38 @@ import (
 )
 
 func NewJobTrivy(jobScanner entity.JobScanner) {
-	execSQL := fmt.Sprintf("INSERT INTO job_trivy (task_id, job_id, job_status, job_data, image_name, image_digest, create_time, active) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', %d)",
-		jobScanner.TaskID, jobScanner.JobID, jobScanner.JobStatus, jobScanner.JobData, jobScanner.ImageName, jobScanner.ImageDigest, jobScanner.CreateTime, jobScanner.Active)
-	_ = mysql.InserData(execSQL)
+	jobTrivy := entity.JobTrivy{}
+	jobTrivy.JobScanner = jobScanner
+	mysql.Client.Create(&jobTrivy)
 }
 
 func GetJobTrivy(taskID string) *[]entity.JobScanner {
-	execSQL := fmt.Sprintf("SELECT task_id, job_id, job_status, job_data FROM job_trivy WHERE task_id='%s'",
-		taskID)
 	jobTrivyDataList := new([]entity.JobScanner)
-	err := mysql.Client.Select(jobTrivyDataList, execSQL)
+	rows, err := mysql.Client.Model(&entity.JobTrivy{}).Scopes(mysql.QuerytByTaskID(taskID)).Rows()
 	if err != nil {
-		log.Println(err)
+		log.Print(err)
+		return jobTrivyDataList
 	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var jobTrivy entity.JobTrivy
+		mysql.Client.ScanRows(rows, &jobTrivy)
+		*jobTrivyDataList = append(*jobTrivyDataList, jobTrivy.JobScanner)
+	}
+
 	return jobTrivyDataList
 }
 
 func UpdateJobTrivy(jobScanner entity.JobScanner) {
-	execSQL := fmt.Sprintf("UPDATE job_trivy SET job_status='%s', job_data='%s' WHERE job_id='%s'",
-		jobScanner.JobStatus, jobScanner.JobData, jobScanner.JobID)
-	_ = mysql.InserData(execSQL)
+	jobTrivy := entity.JobTrivy{}
+	jobTrivy.JobScanner = jobScanner
+	rows, err := mysql.Client.Model(&entity.JobTrivy{}).Updates(jobTrivy).Scopes(mysql.QuerytByTaskID(jobScanner.JobID)).Rows()
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	defer rows.Close()
 }
 
 func SetJobTrivyStatus(taskID, status string) {

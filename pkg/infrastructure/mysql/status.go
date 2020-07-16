@@ -5,7 +5,7 @@ import (
 )
 
 func Status() {
-	pingErr := Client.Ping()
+	pingErr := Client.DB().Ping()
 	if pingErr != nil {
 		log.Println(pingErr)
 	}

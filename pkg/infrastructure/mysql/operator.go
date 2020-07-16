@@ -1,15 +1,12 @@
 package mysql
 
-import (
-	"log"
-)
+import "github.com/jinzhu/gorm"
 
-func InserData(sqlInfo string) error {
-	log.Println(sqlInfo)
-	_, err := Client.Exec(sqlInfo)
-	if err != nil {
-		log.Println(err)
-		return err
+// 通用方法封装
+
+// 根据ID查询
+func QuerytByTaskID(taskID string) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("task_id = ?", taskID)
 	}
-	return nil
 }

@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/q8s-io/heimdall/pkg/entity"
@@ -10,26 +9,36 @@ import (
 )
 
 func NewJobAnchore(jobScanner entity.JobScanner) {
-	execSQL := fmt.Sprintf("INSERT INTO job_anchore (task_id, job_id, job_status, job_data, image_name, image_digest, create_time, active) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', %d)",
-		jobScanner.TaskID, jobScanner.JobID, jobScanner.JobStatus, jobScanner.JobData, jobScanner.ImageName, jobScanner.ImageDigest, jobScanner.CreateTime, jobScanner.Active)
-	_ = mysql.InserData(execSQL)
+	jobAnchore := entity.JobAnchore{}
+	jobAnchore.JobScanner = jobScanner
+	mysql.Client.Create(&jobAnchore)
 }
 
 func GetJobAnchore(taskID string) *[]entity.JobScanner {
-	execSQL := fmt.Sprintf("SELECT task_id, job_id, job_status, job_data FROM job_anchore WHERE task_id='%s'",
-		taskID)
+	rows, err := mysql.Client.Model(&entity.JobAnchore{}).Scopes(mysql.QuerytByTaskID(taskID)).Rows()
 	jobAnchoreDataList := new([]entity.JobScanner)
-	err := mysql.Client.Select(jobAnchoreDataList, execSQL)
 	if err != nil {
-		log.Println(err)
+		log.Print(err)
+		return nil
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var jobAnchore entity.JobAnchore
+		mysql.Client.ScanRows(rows, &jobAnchore)
+		*jobAnchoreDataList = append(*jobAnchoreDataList, jobAnchore.JobScanner)
 	}
 	return jobAnchoreDataList
 }
 
 func UpdateJobAnchore(jobScanner entity.JobScanner) {
-	execSQL := fmt.Sprintf("UPDATE job_anchore SET job_status='%s', job_data='%s' WHERE job_id='%s'",
-		jobScanner.JobStatus, jobScanner.JobData, jobScanner.JobID)
-	_ = mysql.InserData(execSQL)
+	jobAnchore := entity.JobAnchore{}
+	jobAnchore.JobScanner = jobScanner
+	rows, err := mysql.Client.Model(&entity.JobAnchore{}).Updates(jobAnchore).Scopes(mysql.QuerytByTaskID(jobScanner.JobID)).Rows()
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	defer rows.Close()
 }
 
 func SetJobAnchoreStatus(taskID, status string) {

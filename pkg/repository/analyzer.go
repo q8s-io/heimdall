@@ -1,23 +1,29 @@
 package repository
 
 import (
-	"fmt"
-
 	"github.com/q8s-io/heimdall/pkg/entity"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/mysql"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/redis"
+	"log"
 )
 
-func NewJobImageAnalyzer(jobImageAnalyze entity.JobImageAnalyzer) {
-	execSQL := fmt.Sprintf("INSERT INTO job_analyzer (task_id, job_id, job_status, image_name, image_digest, image_layers, create_time, active) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', %d)",
-		jobImageAnalyze.TaskID, jobImageAnalyze.JobID, jobImageAnalyze.JobStatus, jobImageAnalyze.ImageName, jobImageAnalyze.ImageDigest, jobImageAnalyze.ImageLayers, jobImageAnalyze.CreateTime, jobImageAnalyze.Active)
-	_ = mysql.InserData(execSQL)
+func NewJobImageAnalyzer(jobImageAnalyzer entity.JobImageAnalyzer) {
+	jobAnalyzer := entity.JobAnalyzer{}
+	jobAnalyzer.JobImageAnalyzer = jobImageAnalyzer
+	mysql.Client.Create(&jobAnalyzer)
 }
 
-func UpdateJobImageAnalyzer(jobImageAnalyze entity.JobImageAnalyzer) {
-	execSQL := fmt.Sprintf("UPDATE job_analyzer SET job_status='%s', image_digest='%s', image_layers='%s' WHERE job_id='%s'",
-		jobImageAnalyze.JobStatus, jobImageAnalyze.ImageDigest, jobImageAnalyze.ImageLayers, jobImageAnalyze.JobID)
-	_ = mysql.InserData(execSQL)
+func UpdateJobImageAnalyzer(jobImageAnalyzer entity.JobImageAnalyzer) {
+	var jobAnalyzer entity.JobAnalyzer
+	jobAnalyzer.JobImageAnalyzer = jobImageAnalyzer
+	// 使用 struct 更新多个属性，只会更新其中有变化且为非零值的字段
+	rows, err := mysql.Client.Model(&entity.JobAnalyzer{}).Updates(jobAnalyzer).
+		Scopes(mysql.QuerytByTaskID(jobImageAnalyzer.JobID)).Rows()
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	defer rows.Close()
 }
 
 func SetJobImageAnalyzerStatus(taskID, status string) {

@@ -1,55 +1,71 @@
 package repository
 
 import (
-	"fmt"
-	"log"
-
+	"database/sql"
 	"github.com/q8s-io/heimdall/pkg/entity"
 	"github.com/q8s-io/heimdall/pkg/entity/model"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/mysql"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/redis"
+	"log"
 )
 
 func NewTaskImageScan(taskImageScan entity.TaskImageScan) error {
-	execSQL := fmt.Sprintf("INSERT INTO image_vuln (task_id, task_status, image_name, image_digest, create_time, active) VALUES ('%s', '%s', '%s', '%s', '%s', %d)",
-		taskImageScan.TaskID, taskImageScan.TaskStatus, taskImageScan.ImageName, taskImageScan.ImageDigest, taskImageScan.CreateTime, taskImageScan.Active)
-	err := mysql.InserData(execSQL)
-	return err
+	imageVuln := entity.ImageVuln{}
+	imageVuln.TaskImageScan = taskImageScan
+	mysql.Client.Create(&imageVuln)
+	return nil
 }
 
 func GetTaskImageScan(imageRequestInfo model.ImageRequestInfo) *[]entity.TaskImageScan {
-	var execSQL string
-	if imageRequestInfo.ImageDigest == "" {
-		execSQL = fmt.Sprintf("SELECT task_id, task_status, image_name, image_digest, create_time FROM image_vuln WHERE active=1 AND image_name='%s'",
-			imageRequestInfo.ImageName)
-	} else {
-		execSQL = fmt.Sprintf("SELECT task_id, task_status, image_name, image_digest, create_time FROM image_vuln WHERE active=1 AND image_name='%s' AND image_digest='%s'",
-			imageRequestInfo.ImageName, imageRequestInfo.ImageDigest)
-	}
 	taskImageScanList := new([]entity.TaskImageScan)
-	err := mysql.Client.Select(taskImageScanList, execSQL)
+	rows := new(sql.Rows)
+	var err error
+
+	if imageRequestInfo.ImageDigest == "" {
+		rows, err = mysql.Client.Model(&entity.ImageVuln{}).Where("active = 1 AND image_name = ?", imageRequestInfo.ImageName).Rows()
+	} else {
+		rows, err = mysql.Client.Model(&entity.ImageVuln{}).Where("active = 1 AND image_name = ?  AND image_digest= ?", imageRequestInfo.ImageName, imageRequestInfo.ImageDigest).Rows()
+	}
 	if err != nil {
-		log.Println(err)
+		log.Print(err)
+		return taskImageScanList
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var imageVuln entity.ImageVuln
+		// 将sql.Rows扫描到entity中
+		mysql.Client.ScanRows(rows, &imageVuln)
+		*taskImageScanList = append(*taskImageScanList, imageVuln.TaskImageScan)
 	}
 	return taskImageScanList
 }
 
 func UpdateTaskImageScanDigest(taskID, igest string) {
-	execSQL := fmt.Sprintf("UPDATE image_vuln SET image_digest='%s' WHERE task_id='%s'",
-		igest, taskID)
-	_ = mysql.InserData(execSQL)
+	rows, err := mysql.Client.Model(&entity.ImageVuln{}).Update("image_digest", igest).Scopes(mysql.QuerytByTaskID(taskID)).Rows()
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	rows.Close()
 }
 
 func UpdateTaskImageScanStatus(taskID, status string) {
-	execSQL := fmt.Sprintf("UPDATE image_vuln SET task_status='%s' WHERE task_id='%s'",
-		status, taskID)
-	_ = mysql.InserData(execSQL)
+	rows, err := mysql.Client.Model(&entity.ImageVuln{}).Update("task_status", status).Scopes(mysql.QuerytByTaskID(taskID)).Rows()
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	rows.Close()
 }
 
 func UpdateTaskImageScanActive(imageName string, active int) {
-	execSQL := fmt.Sprintf("UPDATE image_vuln SET active=%d WHERE image_name='%s'",
-		active, imageName)
-	_ = mysql.InserData(execSQL)
+	rows, err := mysql.Client.Model(&entity.ImageVuln{}).Update("active", active).Where("image_name = ?", imageName).Rows()
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	rows.Close()
 }
 
 func GetTaskStatus(taskID string) map[string]string {
