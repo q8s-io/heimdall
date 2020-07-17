@@ -52,7 +52,7 @@ RETRY:
 	}
 }
 
-func PrepareAnchoreScanResult(jobScannerMsg *model.JobScannerMsg, vulnData map[string]interface{}, err error) *model.JobScannerInfo {
+func PrepareAnchoreScanResult(jobScannerMsg *model.JobScannerMsg, vulnData map[string]interface{}, runErr error) *model.JobScannerInfo {
 	var cveList []map[string]string
 	for _, vulnInfo := range vulnData["vulnerabilities"].([]interface{}) {
 		cve := make(map[string]string)
@@ -66,7 +66,7 @@ func PrepareAnchoreScanResult(jobScannerMsg *model.JobScannerMsg, vulnData map[s
 	jobScannerInfo := new(model.JobScannerInfo)
 	jobScannerInfo.TaskID = jobScannerMsg.TaskID
 	jobScannerInfo.JobID = jobScannerMsg.JobID
-	if err != nil {
+	if runErr != nil {
 		jobScannerInfo.JobStatus = model.StatusFailed
 	} else {
 		jobScannerInfo.JobStatus = model.StatusSucceed

@@ -36,7 +36,7 @@ func JobClair() {
 	}
 }
 
-func PrepareClairScanResult(jobScannerMsg *model.JobScannerMsg, vulnData *model.ClairScanResult, err error) *model.JobScannerInfo {
+func PrepareClairScanResult(jobScannerMsg *model.JobScannerMsg, vulnData *model.ClairScanResult, runErr error) *model.JobScannerInfo {
 	var cveList []map[string]string
 
 	vulnerabilities := vulnData.Vulnerabilities
@@ -51,7 +51,7 @@ func PrepareClairScanResult(jobScannerMsg *model.JobScannerMsg, vulnData *model.
 	jobScannerInfo := new(model.JobScannerInfo)
 	jobScannerInfo.TaskID = jobScannerMsg.TaskID
 	jobScannerInfo.JobID = jobScannerMsg.JobID
-	if err != nil {
+	if runErr != nil {
 		jobScannerInfo.JobStatus = model.StatusFailed
 	} else {
 		jobScannerInfo.JobStatus = model.StatusSucceed
