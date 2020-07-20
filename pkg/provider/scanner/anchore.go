@@ -16,8 +16,9 @@ func JobAnchore() {
 	// consumer msg from mq
 	repository.ConsumerMsgJobAnchore()
 	jobScannerMsg := new(model.JobScannerMsg)
+
 	for msg := range kafka.Queue {
-		log.Printf("consumer msg from kafka: %s", msg)
+		log.Printf("consumer msg from kafka %s", msg)
 		_ = json.Unmarshal(msg, &jobScannerMsg)
 
 		// prepare anchore data
@@ -35,7 +36,7 @@ func JobAnchore() {
 
 		// send data to scancenter
 		requestJSON, _ := json.Marshal(jobAnchoreInfo)
-		log.Printf("anchore process result: %s", string(requestJSON))
+		log.Printf("anchore process succeed %s", anchoreRequestInfo.ImageName)
 		_ = net.HTTPPUT(model.Config.ScanCenter.AnchoreURL, string(requestJSON))
 	}
 }

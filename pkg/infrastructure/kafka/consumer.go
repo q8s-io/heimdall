@@ -2,16 +2,13 @@ package kafka
 
 import (
 	"context"
-	"log"
-	"os"
-	"os/signal"
 	"sync"
-	"syscall"
 	"time"
 
 	"github.com/Shopify/sarama"
 
 	"github.com/q8s-io/heimdall/pkg/entity/model"
+	"github.com/q8s-io/heimdall/pkg/infrastructure/xray"
 )
 
 type Consumer struct {
@@ -19,7 +16,7 @@ type Consumer struct {
 }
 
 var Client sarama.ConsumerGroup
-var clientErr interface{}
+var clientErr error
 
 var Queue chan []byte
 
@@ -35,7 +32,7 @@ func InitConsumer() {
 
 	Client, clientErr = sarama.NewConsumerGroup(kafkaConfig.BrokerList, "heimdall", config)
 	if clientErr != nil {
-		log.Println(clientErr)
+		xray.ErrMini(clientErr)
 	}
 
 	Queue = make(chan []byte, 1)
@@ -43,6 +40,8 @@ func InitConsumer() {
 
 func ConsumerMsg(topic string) {
 	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	consumer := Consumer{
 		ready: make(chan bool),
 	}
@@ -54,7 +53,7 @@ func ConsumerMsg(topic string) {
 		for {
 			err := Client.Consume(ctx, []string{topic}, &consumer)
 			if err != nil {
-				log.Println(err)
+				xray.ErrMini(err)
 			}
 			if ctx.Err() != nil {
 				return
@@ -63,24 +62,11 @@ func ConsumerMsg(topic string) {
 		}
 	}()
 
-	<-consumer.ready
-
-	sigterm := make(chan os.Signal, 1)
-	signal.Notify(sigterm, syscall.SIGINT, syscall.SIGTERM)
-	select {
-	case <-ctx.Done():
-		log.Println("context cancelled")
-	case <-sigterm:
-		log.Println("signal cancelled")
-		time.Sleep(2 * time.Second)
-		close(Queue)
-		os.Exit(0)
-	}
-	cancel()
 	wg.Wait()
+
 	err := Client.Close()
 	if err != nil {
-		log.Println(err)
+		xray.ErrMini(err)
 	}
 }
 

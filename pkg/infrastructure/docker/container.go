@@ -9,7 +9,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 
-	volumetypes "github.com/docker/docker/api/types/volume"
+	volumeTypes "github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/client"
 )
 
@@ -111,7 +111,7 @@ func RemoveContainer(cli *client.Client, ctx context.Context, containerID string
 
 // Create volume
 func createVolume(cli *client.Client, ctx context.Context, volumeName string) error {
-	volumeType := volumetypes.VolumesCreateBody{Name: volumeName}
+	volumeType := volumeTypes.VolumesCreateBody{Name: volumeName}
 
 	_, err := cli.VolumeCreate(ctx, volumeType)
 	if err != nil {

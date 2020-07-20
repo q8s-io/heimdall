@@ -3,17 +3,18 @@ package scanner
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"strings"
 	"time"
-
+	
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/client"
-
+	
 	"github.com/q8s-io/heimdall/pkg/infrastructure/docker"
-
+	
 	"github.com/q8s-io/heimdall/pkg/entity/model"
 )
 
@@ -27,10 +28,10 @@ func TrivyScan(imageName string) (model.TrivyScanResult, error) {
 	volumeName := trivyConfig.VolumeName
 
 	// Create a docker client from remote host
-	cli, err := client.NewClient(trivyConfig.HostURL, trivyConfig.Version, nil, nil)
-	if err != nil {
-		log.Println(err)
-		return scanResult, err
+	cli, cErr := client.NewClient(trivyConfig.HostURL, trivyConfig.Version, nil, nil)
+	if cErr != nil {
+
+		return scanResult, cErr
 	}
 
 	// The runtime of limits is 10 minute
@@ -88,10 +89,15 @@ func getTrivyResults(cli *client.Client, ctx context.Context, containerID string
 	result := model.TrivyScanResult{}
 
 	out, cpErr := docker.CopyFileFromContainer(cli, ctx, containerID, path)
+	fmt.Println(path)
 	if cpErr != nil {
 		return result, cpErr
 	}
 
+	// body, err := ioutil.ReadAll(out)
+	// fmt.Println(string(body))
+	// fmt.Println(err)
+	
 	buf := new(strings.Builder)
 	_, _ = io.Copy(buf, out)
 

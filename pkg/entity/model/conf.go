@@ -39,7 +39,7 @@ type scancenter struct {
 }
 
 type docker struct {
-	Host    string `toml:"host"`
+	Host    string `toml:"docker_url"`
 	Version string `toml:"version"`
 }
 
@@ -50,7 +50,7 @@ type anchore struct {
 }
 
 type trivy struct {
-	HostURL       string `toml:"host_url"`
+	HostURL       string `toml:"trivy_url"`
 	Version       string `toml:"version"`
 	VolumeName    string `toml:"volume_name"`
 	ContainerName string `toml:"containerName"`
@@ -62,7 +62,7 @@ type trivy struct {
 }
 
 type clair struct {
-	HostURL       string `toml:"host_url"`
+	HostURL       string `toml:"clair_url"`
 	Version       string `toml:"version"`
 	ClairADDR     string `toml:"clair_addr"`
 	Image         string `toml:"image"`

@@ -52,7 +52,8 @@ func RunScanCenter() {
 
 func RunAnalyzer() {
 	kafka.InitConsumer()
-	analyzer.JobAnalyzer()
+	go analyzer.JobAnalyzer()
+	analyzer.Signal()
 }
 
 func RunScannerAnchore() {

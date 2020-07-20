@@ -16,8 +16,9 @@ func JobAnalyzer() {
 	// consumer msg from mq
 	repository.ConsumerMsgJobImageAnalyzer()
 	jobScannerMsg := new(model.JobScannerMsg)
+
 	for msg := range kafka.Queue {
-		log.Printf("consumer msg from kafka: %s", msg)
+		log.Printf("consumer msg from kafka %s", msg)
 		_ = json.Unmarshal(msg, &jobScannerMsg)
 
 		// image analyzer
@@ -27,7 +28,7 @@ func JobAnalyzer() {
 
 		// send data to scancenter
 		requestJSON, _ := json.Marshal(jobImageAnalyzerInfo)
-		log.Printf("analyzer process result: %s", string(requestJSON))
+		log.Printf("analyzer process succeed %s", imageName)
 		_ = net.HTTPPUT(model.Config.ScanCenter.AnalyzerURL, string(requestJSON))
 	}
 }

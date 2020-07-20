@@ -2,15 +2,10 @@ package ginext
 
 import (
 	"log"
-	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
-
-func InitLog() {
-	log.SetOutput(os.Stdout)
-}
 
 func GinLogger() gin.HandlerFunc {
 	return func(c *gin.Context) {

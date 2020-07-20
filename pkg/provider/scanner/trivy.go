@@ -8,6 +8,7 @@ import (
 	"github.com/q8s-io/heimdall/pkg/entity/model"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/kafka"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/net"
+	"github.com/q8s-io/heimdall/pkg/infrastructure/xray"
 	"github.com/q8s-io/heimdall/pkg/repository"
 )
 
@@ -17,7 +18,7 @@ func JobTrivy() {
 	jobScannerMsg := new(model.JobScannerMsg)
 
 	for msg := range kafka.Queue {
-		log.Printf("consumer msg from kafka: %s", msg)
+		log.Printf("consumer msg from kafka %s", msg)
 		_ = json.Unmarshal(msg, &jobScannerMsg)
 
 		// prepare trivy data
@@ -25,13 +26,14 @@ func JobTrivy() {
 
 		// get scanning data
 		vulnData, getErr := TrivyScan(imageName)
+		xray.ErrMini(getErr)
 
 		// prepare trivy scan result
 		jobTrivyInfo := PrepareTrivyScanResult(jobScannerMsg, &vulnData, getErr)
 
 		// send to scancenter
 		requestJSON, _ := json.Marshal(jobTrivyInfo)
-		log.Printf("trivy process result: %s", string(requestJSON))
+		log.Printf("trivy process succeed %s", imageName)
 		_ = net.HTTPPUT(model.Config.ScanCenter.TrivyURL, string(requestJSON))
 	}
 }
@@ -53,7 +55,8 @@ func PrepareTrivyScanResult(jobScannerMsg *model.JobScannerMsg, vulnData *model.
 	jobScannerInfo := new(model.JobScannerInfo)
 	jobScannerInfo.TaskID = jobScannerMsg.TaskID
 	jobScannerInfo.JobID = jobScannerMsg.JobID
-	// 判断运行过程是否异常。
+
+	// 判断运行过程是否异常
 	if runErr != nil {
 		jobScannerInfo.JobStatus = model.StatusFailed
 	} else {

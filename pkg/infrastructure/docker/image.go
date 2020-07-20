@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/docker/docker/client"
 
 	"github.com/q8s-io/heimdall/pkg/entity/model"
+	"github.com/q8s-io/heimdall/pkg/infrastructure/xray"
 )
 
 var imageFullName string
@@ -22,7 +22,7 @@ func ImageAnalyzer(imageName string) ([]string, []string) {
 	// docker client
 	cli, cerr := client.NewClient(dockerConfig.Host, dockerConfig.Version, nil, nil)
 	if cerr != nil {
-		log.Println(cerr)
+		xray.ErrMini(cerr)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 600*time.Second)
@@ -34,6 +34,7 @@ PULLIMAGE:
 	// pull image
 	err := PullImage(imageFullName, cli, ctx)
 	if err != nil {
+		xray.ErrMini(err)
 		switch err.Error() {
 		case "repository name must be canonical":
 			imageFullName = fmt.Sprintf("docker.io/library/%s", imageName)
@@ -53,11 +54,9 @@ PULLIMAGE:
 func PullImage(imageName string, cli *client.Client, ctx context.Context) error {
 	out, perr := cli.ImagePull(ctx, imageName, types.ImagePullOptions{})
 	if perr != nil {
-		log.Println(perr)
 		return perr
 	}
 	if _, perr = io.Copy(os.Stdout, out); perr != nil {
-		log.Println(perr)
 		return perr
 	}
 	_ = out.Close()
@@ -67,7 +66,7 @@ func PullImage(imageName string, cli *client.Client, ctx context.Context) error 
 func InspectImage(imageName string, cli *client.Client, ctx context.Context) (string, []string, []string) {
 	imageInspect, _, ierr := cli.ImageInspectWithRaw(ctx, imageName)
 	if ierr != nil {
-		log.Println(ierr)
+		xray.ErrMini(ierr)
 	}
 	imageID := imageInspect.ID
 	digest := imageInspect.RepoDigests
@@ -81,6 +80,6 @@ func DeleteImage(imageID string, cli *client.Client, ctx context.Context) {
 	imageRemoveOptions.PruneChildren = true
 	_, rerr := cli.ImageRemove(ctx, imageID, imageRemoveOptions)
 	if rerr != nil {
-		log.Println(rerr)
+		xray.ErrMini(rerr)
 	}
 }

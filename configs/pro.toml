@@ -14,7 +14,7 @@ password = "Qihoo2020"
 broker = ["117.50.109.103:9092"]
 
 [docker]
-host = "http://10.16.29.51:2375"
+docker_url = "http://127.0.0.1:2375"
 version = "v1.40"
 
 [scancenter]
@@ -29,7 +29,7 @@ username = "admin"
 password = "foobar"
 
 [trivy]
-host_url = "http://10.16.29.51:2375"
+trivy_url = "http://127.0.0.1:2375"
 version = "v1.40"
 image = "aquasec/trivy"
 containerName = "trivy_container"
@@ -38,9 +38,8 @@ target_path = "/root/.cache/"
 file_name = "result.json"
 container_cmd = ["-f", "json", "-o"]
 
-
 [clair]
-host_url = "http://10.16.29.51:2375"
+clair_url = "http://127.0.0.1:2375"
 version = "v1.40"
 clair_addr = "CLAIR_ADDR=127.0.0.1"
 image = "klar"

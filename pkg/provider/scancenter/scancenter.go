@@ -3,16 +3,16 @@ package scancenter
 import (
 	"log"
 
+	"github.com/pkg/errors"
+
 	"github.com/q8s-io/heimdall/pkg/entity"
 	"github.com/q8s-io/heimdall/pkg/entity/convert"
 	"github.com/q8s-io/heimdall/pkg/entity/model"
+	"github.com/q8s-io/heimdall/pkg/infrastructure/xray"
 )
 
 func TaskImageScanRotaryCreate(imageRequestInfo *model.ImageRequestInfo) (*model.ImageVulnInfo, error) {
-	taskImageScanInfo, err := CreateTaskImageScan(imageRequestInfo)
-	if err != nil {
-		return nil, err
-	}
+	taskImageScanInfo := CreateTaskImageScan(imageRequestInfo)
 	PrepareJobAnalyzer(taskImageScanInfo)
 	imageVulnInfo := convert.ImageVulnByScanInfo(taskImageScanInfo, nil)
 	return imageVulnInfo, nil
@@ -68,12 +68,13 @@ func MergerImageVulnData(taskImageScan *entity.TaskImageScan, jobAnchoreVuln, jo
 func merge(vulnData *[]map[string]interface{}, cveMap *map[string]int, engineName string, jobVuln []map[string]string) {
 	// 输出结果为空的引擎
 	if jobVuln == nil || len(jobVuln) == 0 {
-		log.Printf("Scanner %s result: null", engineName)
+		log.Printf("scanner %s result empty", engineName)
 		return
 	}
 
 	for _, cveData := range jobVuln {
 		idx, exist := (*cveMap)[cveData["cve"]]
+
 		// 不存在
 		if !exist {
 			packageElement := make(map[string]string, 3)
@@ -92,13 +93,17 @@ func merge(vulnData *[]map[string]interface{}, cveMap *map[string]int, engineNam
 
 			*vulnData = append(*vulnData, curMap)
 			(*cveMap)[cveData["cve"]] = len(*vulnData) - 1
-		} else { // 存在
+
+			// 存在
+		} else {
 			value := (*vulnData)[idx]["package_info"]
 
 			switch value.(type) {
+
 			case []map[string]string:
 				pkgList := value.([]map[string]string)
-				repeat := false // 是否重复包
+				// 是否重复包
+				repeat := false
 
 				for _, pkg := range pkgList {
 					// 全名相等
@@ -117,9 +122,11 @@ func merge(vulnData *[]map[string]interface{}, cveMap *map[string]int, engineNam
 					pkgList = append(pkgList, newPkg)
 					(*vulnData)[idx]["package_info"] = pkgList
 				}
+
 			default:
-				log.Println("process pkg list err !!!")
+				xray.ErrMini(errors.New("process pkg list failed"))
 			}
 		}
+
 	}
 }

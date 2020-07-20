@@ -1,11 +1,10 @@
 package repository
 
 import (
-	"log"
-
 	"github.com/q8s-io/heimdall/pkg/entity"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/mysql"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/redis"
+	"github.com/q8s-io/heimdall/pkg/infrastructure/xray"
 )
 
 func NewJobAnchore(jobScanner entity.JobScanner) {
@@ -15,13 +14,17 @@ func NewJobAnchore(jobScanner entity.JobScanner) {
 }
 
 func GetJobAnchore(taskID string) *[]entity.JobScanner {
-	rows, err := mysql.Client.Model(&entity.JobAnchore{}).Scopes(mysql.QueryByTaskID(taskID)).Rows()
 	jobAnchoreDataList := new([]entity.JobScanner)
+
+	rows, err := mysql.Client.Model(&entity.JobAnchore{}).
+		Scopes(mysql.QueryByTaskID(taskID)).
+		Rows()
 	if err != nil {
-		log.Print(err)
-		return nil
+		xray.ErrMini(err)
+		return jobAnchoreDataList
 	}
 	defer rows.Close()
+
 	for rows.Next() {
 		var jobAnchore entity.JobAnchore
 		_ = mysql.Client.ScanRows(rows, &jobAnchore)
@@ -33,10 +36,13 @@ func GetJobAnchore(taskID string) *[]entity.JobScanner {
 func UpdateJobAnchore(jobScanner entity.JobScanner) {
 	jobAnchore := entity.JobAnchore{}
 	jobAnchore.JobScanner = jobScanner
-	rows, err := mysql.Client.Model(&entity.JobAnchore{}).Updates(jobAnchore).
-		Scopes(mysql.QueryByJobID(jobScanner.JobID)).Rows()
+
+	rows, err := mysql.Client.Model(&entity.JobAnchore{}).
+		Updates(jobAnchore).
+		Scopes(mysql.QueryByJobID(jobScanner.JobID)).
+		Rows()
 	if err != nil {
-		log.Print(err)
+		xray.ErrMini(err)
 		return
 	}
 	defer rows.Close()

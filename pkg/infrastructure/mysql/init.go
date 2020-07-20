@@ -1,19 +1,18 @@
 package mysql
 
 import (
-	"log"
 	"time"
-	
+
 	_ "github.com/go-sql-driver/mysql"
-	
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
-	
+
 	"github.com/q8s-io/heimdall/pkg/entity/model"
+	"github.com/q8s-io/heimdall/pkg/infrastructure/xray"
 )
 
 var Client *gorm.DB
-var connErr interface{}
+var connErr error
 
 func Init() {
 	mysqlConfig := model.Config.MySQL
@@ -21,7 +20,7 @@ func Init() {
 
 	Client, connErr = gorm.Open("mysql", connInfo)
 	if connErr != nil {
-		log.Println(connErr)
+		xray.ErrMini(connErr)
 	}
 	// 链接池
 	Client.DB().SetMaxOpenConns(5)

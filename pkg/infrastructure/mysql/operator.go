@@ -1,8 +1,8 @@
 package mysql
 
-import "github.com/jinzhu/gorm"
-
-// 通用方法封装
+import (
+	"github.com/jinzhu/gorm"
+)
 
 // 根据taskID查询
 func QueryByTaskID(taskID string) func(db *gorm.DB) *gorm.DB {

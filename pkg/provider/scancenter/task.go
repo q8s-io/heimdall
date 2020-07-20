@@ -7,15 +7,12 @@ import (
 	"github.com/q8s-io/heimdall/pkg/repository"
 )
 
-func CreateTaskImageScan(imageRequestInfo *model.ImageRequestInfo) (*model.TaskImageScanInfo, error) {
+func CreateTaskImageScan(imageRequestInfo *model.ImageRequestInfo) *model.TaskImageScanInfo {
 	// prepare task
 	taskImageScanInfo := convert.TaskImageScanInfoByRequestInfo(imageRequestInfo)
 	taskImageScan := convert.TaskImageScan(taskImageScanInfo, 1)
-	err := repository.NewTaskImageScan(*taskImageScan)
-	if err != nil {
-		return nil, err
-	}
-	return taskImageScanInfo, nil
+	repository.NewTaskImageScan(*taskImageScan)
+	return taskImageScanInfo
 }
 
 func GetTaskImageScan(imageRequestInfo *model.ImageRequestInfo) *[]entity.TaskImageScan {

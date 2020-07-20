@@ -1,15 +1,14 @@
 package kafka
 
 import (
-	"log"
-
 	"github.com/Shopify/sarama"
 
 	"github.com/q8s-io/heimdall/pkg/entity/model"
+	"github.com/q8s-io/heimdall/pkg/infrastructure/xray"
 )
 
 var SyncProducer sarama.SyncProducer
-var syncProducerErr interface{}
+var syncProducerErr error
 
 func InitSyncProducer() {
 	config := sarama.NewConfig()
@@ -21,7 +20,7 @@ func InitSyncProducer() {
 
 	SyncProducer, syncProducerErr = sarama.NewSyncProducer(kafkaConfig.BrokerList, config)
 	if syncProducerErr != nil {
-		log.Println(syncProducerErr)
+		xray.ErrMini(syncProducerErr)
 	}
 }
 
@@ -33,6 +32,6 @@ func SyncProducerSendMsg(topic string, message sarama.Encoder) {
 	_, _, err := SyncProducer.SendMessage(msg)
 
 	if err != nil {
-		log.Println("error publish ", err.Error())
+		xray.ErrMini(err)
 	}
 }

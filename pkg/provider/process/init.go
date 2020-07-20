@@ -6,7 +6,7 @@ import (
 	"github.com/BurntSushi/toml"
 
 	"github.com/q8s-io/heimdall/pkg/entity/model"
-	"github.com/q8s-io/heimdall/pkg/infrastructure/ginext"
+	"github.com/q8s-io/heimdall/pkg/infrastructure/qlog"
 )
 
 func Init(confPath string) {
@@ -16,5 +16,5 @@ func Init(confPath string) {
 		return
 	}
 	// init log
-	ginext.InitLog()
+	qlog.InitLog()
 }

@@ -24,11 +24,11 @@ type Layer struct {
 }
 
 type VendorVectors struct {
-	nvd    Level `json:"nvd"`
-	redhat Level `json:"redhat"`
+	Nvd    Level `json:"nvd"`
+	Redhat Level `json:"redhat"`
 }
 
 type Level struct {
-	v2 string `json:"v2"`
-	v3 string `json:"v3"`
+	V2 string `json:"v2"`
+	V3 string `json:"v3"`
 }

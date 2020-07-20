@@ -14,6 +14,11 @@ func GetImageVulnData(c *gin.Context) {
 		return
 	}
 
+	if imageRequestInfo.ImageName == "" {
+		ginext.Sender(c, 1, "Lack of image name", "")
+		return
+	}
+
 	// judge
 	judgeData, err := scancenter.JudgeTask(imageRequestInfo)
 

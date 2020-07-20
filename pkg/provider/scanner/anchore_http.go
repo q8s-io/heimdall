@@ -3,12 +3,12 @@ package scanner
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/q8s-io/heimdall/pkg/entity/model"
+	"github.com/q8s-io/heimdall/pkg/infrastructure/xray"
 )
 
 func AnchoreGET(reqURL string) (map[string]interface{}, error) {
@@ -19,13 +19,13 @@ func AnchoreGET(reqURL string) (map[string]interface{}, error) {
 	}
 	res, perr := c.Do(req)
 	if perr != nil {
-		log.Println(perr)
+		xray.ErrMini(perr)
 		return nil, perr
 	}
 	resBody, berr := ioutil.ReadAll(res.Body)
 	_ = res.Body.Close()
 	if berr != nil {
-		log.Println(berr)
+		xray.ErrMini(berr)
 		return nil, berr
 	}
 	responeDate := make(map[string]interface{}, 1)
@@ -42,13 +42,13 @@ func AnchorePOST(reqURL, reqData string) []map[string]interface{} {
 	}
 	res, perr := c.Do(req)
 	if perr != nil {
-		log.Println(perr)
+		xray.ErrMini(perr)
 		return nil
 	}
 	resBody, berr := ioutil.ReadAll(res.Body)
 	_ = res.Body.Close()
 	if berr != nil {
-		log.Println(berr)
+		xray.ErrMini(berr)
 		return nil
 	}
 	responeDate := make([]map[string]interface{}, 1)

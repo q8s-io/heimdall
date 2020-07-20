@@ -1,12 +1,12 @@
 package redis
 
 import (
-	"log"
+	"github.com/q8s-io/heimdall/pkg/infrastructure/xray"
 )
 
 func Status() {
 	pong, err := Client.Ping().Result()
 	if err != nil || pong != "PONG" {
-		log.Println(err)
+		xray.ErrMini(err)
 	}
 }

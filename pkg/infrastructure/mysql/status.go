@@ -1,12 +1,12 @@
 package mysql
 
 import (
-	"log"
+	"github.com/q8s-io/heimdall/pkg/infrastructure/xray"
 )
 
 func Status() {
 	pingErr := Client.DB().Ping()
 	if pingErr != nil {
-		log.Println(pingErr)
+		xray.ErrMini(pingErr)
 	}
 }

@@ -4,10 +4,11 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/q8s-io/heimdall/pkg/infrastructure/xray"
 )
 
 func HTTPGET(reqURL string) []byte {
@@ -21,13 +22,13 @@ func HTTPGET(reqURL string) []byte {
 	}
 	res, perr := c.Do(req)
 	if perr != nil {
-		log.Println(perr)
+		xray.ErrMini(perr)
 		return nil
 	}
 	resBody, berr := ioutil.ReadAll(res.Body)
 	_ = res.Body.Close()
 	if berr != nil {
-		log.Println(berr)
+		xray.ErrMini(berr)
 	}
 	return resBody
 }
@@ -40,13 +41,13 @@ func HTTPPOST(reqURL, reqData string) map[string]interface{} {
 	}
 	res, perr := c.Do(req)
 	if perr != nil {
-		log.Println(perr)
+		xray.ErrMini(perr)
 		return nil
 	}
 	resBody, berr := ioutil.ReadAll(res.Body)
 	_ = res.Body.Close()
 	if berr != nil {
-		log.Println(berr)
+		xray.ErrMini(berr)
 		return nil
 	}
 	responeDate := make(map[string]interface{})
@@ -62,13 +63,13 @@ func HTTPPUT(reqURL, reqData string) map[string]interface{} {
 	}
 	res, perr := c.Do(req)
 	if perr != nil {
-		log.Println(perr)
+		xray.ErrMini(perr)
 		return nil
 	}
 	resBody, berr := ioutil.ReadAll(res.Body)
 	_ = res.Body.Close()
 	if berr != nil {
-		log.Println(berr)
+		xray.ErrMini(berr)
 		return nil
 	}
 	responeDate := make(map[string]interface{})
@@ -83,13 +84,13 @@ func HTTPDELETE(reqURL, reqData string) map[string]interface{} {
 	}
 	res, perr := c.Do(req)
 	if perr != nil {
-		log.Println(perr)
+		xray.ErrMini(perr)
 		return nil
 	}
 	resBody, berr := ioutil.ReadAll(res.Body)
 	_ = res.Body.Close()
 	if berr != nil {
-		log.Println(berr)
+		xray.ErrMini(berr)
 		return nil
 	}
 	responeDate := make(map[string]interface{})
