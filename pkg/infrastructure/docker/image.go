@@ -8,23 +8,13 @@ import (
 	"time"
 
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/client"
 
-	"github.com/q8s-io/heimdall/pkg/entity/model"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/xray"
 )
 
 var imageFullName string
 
 func ImageAnalyzer(imageName string) ([]string, []string) {
-	dockerConfig := model.Config.Docker
-
-	// docker client
-	cli, cerr := client.NewClient(dockerConfig.Host, dockerConfig.Version, nil, nil)
-	if cerr != nil {
-		xray.ErrMini(cerr)
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), 600*time.Second)
 	defer cancel()
 
@@ -32,7 +22,7 @@ func ImageAnalyzer(imageName string) ([]string, []string) {
 
 PULLIMAGE:
 	// pull image
-	err := PullImage(imageFullName, cli, ctx)
+	err := PullImage(imageFullName, ctx)
 	if err != nil {
 		xray.ErrMini(err)
 		switch err.Error() {
@@ -43,16 +33,16 @@ PULLIMAGE:
 	}
 
 	// inspect image
-	imageID, digest, layers := InspectImage(imageFullName, cli, ctx)
+	imageID, digest, layers := InspectImage(imageFullName, ctx)
 
 	// remove image
-	DeleteImage(imageID, cli, ctx)
+	DeleteImage(imageID, ctx)
 
 	return digest, layers
 }
 
-func PullImage(imageName string, cli *client.Client, ctx context.Context) error {
-	out, perr := cli.ImagePull(ctx, imageName, types.ImagePullOptions{})
+func PullImage(imageName string, ctx context.Context) error {
+	out, perr := DClient.ImagePull(ctx, imageName, types.ImagePullOptions{})
 	if perr != nil {
 		return perr
 	}
@@ -63,8 +53,8 @@ func PullImage(imageName string, cli *client.Client, ctx context.Context) error 
 	return nil
 }
 
-func InspectImage(imageName string, cli *client.Client, ctx context.Context) (string, []string, []string) {
-	imageInspect, _, ierr := cli.ImageInspectWithRaw(ctx, imageName)
+func InspectImage(imageName string, ctx context.Context) (string, []string, []string) {
+	imageInspect, _, ierr := DClient.ImageInspectWithRaw(ctx, imageName)
 	if ierr != nil {
 		xray.ErrMini(ierr)
 	}
@@ -74,11 +64,11 @@ func InspectImage(imageName string, cli *client.Client, ctx context.Context) (st
 	return imageID, digest, layers
 }
 
-func DeleteImage(imageID string, cli *client.Client, ctx context.Context) {
+func DeleteImage(imageID string, ctx context.Context) {
 	var imageRemoveOptions types.ImageRemoveOptions
 	imageRemoveOptions.Force = true
 	imageRemoveOptions.PruneChildren = true
-	_, rerr := cli.ImageRemove(ctx, imageID, imageRemoveOptions)
+	_, rerr := DClient.ImageRemove(ctx, imageID, imageRemoveOptions)
 	if rerr != nil {
 		xray.ErrMini(rerr)
 	}

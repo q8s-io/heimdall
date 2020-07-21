@@ -8,7 +8,6 @@ import (
 	"github.com/q8s-io/heimdall/pkg/entity/model"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/kafka"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/net"
-	"github.com/q8s-io/heimdall/pkg/infrastructure/xray"
 	"github.com/q8s-io/heimdall/pkg/repository"
 )
 
@@ -26,7 +25,6 @@ func JobTrivy() {
 
 		// get scanning data
 		vulnData, getErr := TrivyScan(imageName)
-		xray.ErrMini(getErr)
 
 		// prepare trivy scan result
 		jobTrivyInfo := PrepareTrivyScanResult(jobScannerMsg, &vulnData, getErr)

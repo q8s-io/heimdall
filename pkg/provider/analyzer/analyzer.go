@@ -13,6 +13,9 @@ import (
 )
 
 func JobAnalyzer() {
+	dockerConfig := model.Config.Docker
+	docker.Init(dockerConfig.Host, dockerConfig.Version, nil, nil)
+
 	// consumer msg from mq
 	repository.ConsumerMsgJobImageAnalyzer()
 	jobScannerMsg := new(model.JobScannerMsg)

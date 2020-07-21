@@ -3,19 +3,18 @@ package scanner
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"strings"
 	"time"
-	
+
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/client"
-	
-	"github.com/q8s-io/heimdall/pkg/infrastructure/docker"
-	
+
 	"github.com/q8s-io/heimdall/pkg/entity/model"
+	"github.com/q8s-io/heimdall/pkg/infrastructure/docker"
+	"github.com/q8s-io/heimdall/pkg/infrastructure/xray"
 )
 
 func TrivyScan(imageName string) (model.TrivyScanResult, error) {
@@ -30,7 +29,7 @@ func TrivyScan(imageName string) (model.TrivyScanResult, error) {
 	// Create a docker client from remote host
 	cli, cErr := client.NewClient(trivyConfig.HostURL, trivyConfig.Version, nil, nil)
 	if cErr != nil {
-
+		xray.ErrMini(cErr)
 		return scanResult, cErr
 	}
 
@@ -89,14 +88,11 @@ func getTrivyResults(cli *client.Client, ctx context.Context, containerID string
 	result := model.TrivyScanResult{}
 
 	out, cpErr := docker.CopyFileFromContainer(cli, ctx, containerID, path)
-	fmt.Println(path)
 	if cpErr != nil {
 		return result, cpErr
 	}
 
-	// body, err := ioutil.ReadAll(out)
-	// fmt.Println(string(body))
-	// fmt.Println(err)
+	// data, err := ioutil.ReadAll(out)
 	
 	buf := new(strings.Builder)
 	_, _ = io.Copy(buf, out)

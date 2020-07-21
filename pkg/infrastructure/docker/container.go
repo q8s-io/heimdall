@@ -22,7 +22,6 @@ func CreateContainer(cli *client.Client, ctx context.Context, config *container.
 		if removeErr != nil {
 			return "", removeErr
 		}
-
 		body, err = cli.ContainerCreate(ctx, config, hostConfig, nil, containerName)
 		if err != nil {
 			log.Printf("删除之前的容器后再创建%s容器还有问题！！！", containerName)
@@ -112,7 +111,6 @@ func RemoveContainer(cli *client.Client, ctx context.Context, containerID string
 // Create volume
 func createVolume(cli *client.Client, ctx context.Context, volumeName string) error {
 	volumeType := volumeTypes.VolumesCreateBody{Name: volumeName}
-
 	_, err := cli.VolumeCreate(ctx, volumeType)
 	if err != nil {
 		log.Printf("create volume %s failed !!! %s", volumeName, err)
