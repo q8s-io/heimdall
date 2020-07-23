@@ -3,21 +3,21 @@ version: '3'
 services:
 
   heimdall-analyzer:
-    image: heimdall:latest
+    image: uhub.service.ucloud.cn/devsecops/heimdall:c76eb99
     network_mode: "host"
     command: -type analyzer
 
   heimdall-anchore:
-    image: heimdall:latest
+    image: uhub.service.ucloud.cn/devsecops/heimdall:c76eb99
     network_mode: "host"
     command: -type scanner-anchore
 
   heimdall-trivy:
-    image: heimdall:latest
+    image: uhub.service.ucloud.cn/devsecops/heimdall:c76eb99
     network_mode: "host"
     command: -type scanner-trivy
 
   heimdall-clair:
-    image: heimdall:latest
+    image: uhub.service.ucloud.cn/devsecops/heimdall:c76eb99
     network_mode: "host"
     command: -type scanner-clair
