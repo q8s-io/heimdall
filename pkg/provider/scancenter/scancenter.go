@@ -127,6 +127,5 @@ func merge(vulnData *[]map[string]interface{}, cveMap *map[string]int, engineNam
 				xray.ErrMini(errors.New("process pkg list failed"))
 			}
 		}
-
 	}
 }

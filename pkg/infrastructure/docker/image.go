@@ -64,6 +64,14 @@ func InspectImage(imageName string, ctx context.Context) (string, []string, []st
 	return imageID, digest, layers
 }
 
+func InspectImageExist(imageName string, ctx context.Context) error {
+	_, _, ierr := DClient.ImageInspectWithRaw(ctx, imageName)
+	if ierr != nil {
+		return ierr
+	}
+	return nil
+}
+
 func DeleteImage(imageID string, ctx context.Context) {
 	var imageRemoveOptions types.ImageRemoveOptions
 	imageRemoveOptions.Force = true

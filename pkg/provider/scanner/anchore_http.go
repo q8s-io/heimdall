@@ -19,14 +19,13 @@ func AnchoreGET(reqURL string) (map[string]interface{}, error) {
 	}
 	res, perr := c.Do(req)
 	if perr != nil {
-		xray.ErrMini(perr)
-		return nil, perr
+		return nil, xray.ErrMiniInfo(perr)
 	}
 	resBody, berr := ioutil.ReadAll(res.Body)
 	_ = res.Body.Close()
 	if berr != nil {
 		xray.ErrMini(berr)
-		return nil, berr
+		return nil, xray.ErrMiniInfo(perr)
 	}
 	responeDate := make(map[string]interface{}, 1)
 	_ = json.Unmarshal(resBody, &responeDate)
@@ -42,13 +41,11 @@ func AnchorePOST(reqURL, reqData string) []map[string]interface{} {
 	}
 	res, perr := c.Do(req)
 	if perr != nil {
-		xray.ErrMini(perr)
 		return nil
 	}
 	resBody, berr := ioutil.ReadAll(res.Body)
 	_ = res.Body.Close()
 	if berr != nil {
-		xray.ErrMini(berr)
 		return nil
 	}
 	responeDate := make([]map[string]interface{}, 1)

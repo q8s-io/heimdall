@@ -3,6 +3,8 @@ package scanner
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/q8s-io/heimdall/pkg/infrastructure/docker"
+	"github.com/q8s-io/heimdall/pkg/infrastructure/xray"
 	"log"
 
 	"github.com/q8s-io/heimdall/pkg/entity/model"
@@ -12,6 +14,8 @@ import (
 )
 
 func JobClair() {
+	dockerConfig := model.Config.Docker
+	docker.Init(dockerConfig.Host, dockerConfig.Version, nil, nil)
 	// consumer msg from mq
 	repository.ConsumerMsgJobClair()
 	jobScannerMsg := new(model.JobScannerMsg)
@@ -25,6 +29,9 @@ func JobClair() {
 
 		// get scanning data
 		vulnData, getErr := ClairScan(imageName)
+		if getErr != nil {
+			xray.ErrTaskInfo(getErr, jobScannerMsg.TaskID, jobScannerMsg.JobID)
+		}
 
 		// prepare clair scan result
 		jobClairInfo := PrepareClairScanResult(jobScannerMsg, &vulnData, getErr)

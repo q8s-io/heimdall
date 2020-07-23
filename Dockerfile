@@ -22,7 +22,7 @@ RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 WORKDIR /app
 
 COPY --from=builder /app/app .
-COPY api/configs ./configs
+COPY ./configs/ ./configs/
 RUN chmod +x /app/app
 
 ENTRYPOINT ["/app/app"]

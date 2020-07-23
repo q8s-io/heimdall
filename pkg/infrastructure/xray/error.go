@@ -15,6 +15,9 @@ type XErr struct {
 	rawStack []uintptr // 初始错误的调用栈
 }
 
+type LogErr struct {
+}
+
 func (e *XErr) Error() string {
 	return e.Msg
 }
@@ -74,6 +77,17 @@ func ErrMini(err error) {
 		e.Error(),
 		e.RawStackMini(),
 	)
+}
+
+// combine raw error info and rawStack error info in the base error and return as a new error
+func ErrMiniInfo(err error) error {
+	e := Wrap(err, 0)
+	newErr := errors.New(fmt.Sprintf("%s\n|------------------ %s\n", e.Error(), e.RawStackMini()))
+	return newErr
+}
+
+func ErrTaskInfo(err error, taskID, jobID string) {
+	log.Printf("[TaskID]: %s\n[JobID]: %s\n[ErrInfo]: %s", taskID, jobID, err)
 }
 
 // Wrap notice: be careful, the returned value is *MErr, not error

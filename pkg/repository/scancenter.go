@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-
 	"github.com/q8s-io/heimdall/pkg/entity"
 	"github.com/q8s-io/heimdall/pkg/entity/model"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/mysql"
@@ -19,7 +18,6 @@ func NewTaskImageScan(taskImageScan entity.TaskImageScan) {
 func GetTaskImageScan(imageRequestInfo model.ImageRequestInfo) *[]entity.TaskImageScan {
 	taskImageScanList := new([]entity.TaskImageScan)
 	rows := new(sql.Rows)
-
 	var err error
 	rows, err = mysql.Client.Model(&entity.ImageVuln{}).
 		Where("active = 1 AND image_name = ?", imageRequestInfo.ImageName).

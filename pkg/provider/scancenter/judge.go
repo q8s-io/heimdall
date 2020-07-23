@@ -1,10 +1,9 @@
 package scancenter
 
 import (
-	"strings"
-
 	"github.com/q8s-io/heimdall/pkg/entity/model"
 	"github.com/q8s-io/heimdall/pkg/repository"
+	"strings"
 )
 
 func JudgeTask(imageRequestInfo *model.ImageRequestInfo) (interface{}, error) {
@@ -32,17 +31,8 @@ func JudgeTask(imageRequestInfo *model.ImageRequestInfo) (interface{}, error) {
 		if imageTag == "latest" || len(imageSlice) == 1 {
 			UpdateTaskImageScanActive(imageRequestInfo)
 			return TaskImageScanRotaryCreate(imageRequestInfo)
-
-			// if ImageDigest is db.ImageDigest, return data
-		} else if imageRequestInfo.ImageDigest == taskImageScan.ImageDigest {
-			return TaskImageScanMerger(&taskImageScan)
-
-			// if ImageDigest not is db.ImageDigest, mark old data, run scan center
-		} else {
-			UpdateTaskImageScanActive(imageRequestInfo)
-			return TaskImageScanRotaryCreate(imageRequestInfo)
-
 		}
+		return TaskImageScanMerger(&taskImageScan)
 	}
 	return taskImageScanList, nil
 }

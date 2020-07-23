@@ -2,65 +2,73 @@ package docker
 
 import (
 	"context"
+	"github.com/q8s-io/heimdall/pkg/infrastructure/xray"
 	"io"
-	"log"
 	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 
 	volumeTypes "github.com/docker/docker/api/types/volume"
-	"github.com/docker/docker/client"
 )
 
-func CreateContainer(cli *client.Client, ctx context.Context, config *container.Config, hostConfig *container.HostConfig, containerName string) (string, error) {
-	body, err := cli.ContainerCreate(ctx, config, hostConfig, nil, containerName)
-	if err != nil {
-		log.Printf("container %s create error !!! %s", containerName, err)
-		// 先删除之前的容器
-		_, removeErr := RemoveContainer(cli, ctx, containerName)
-		if removeErr != nil {
-			return "", removeErr
+func CreateContainer(ctx context.Context, config *container.Config, hostConfig *container.HostConfig, imageName, containerName string) (string, error) {
+	// 先查看是否有镜像。
+	imgErr := InspectImageExist(imageName, ctx)
+	// 在配置文件中最好配置全名
+	imageFullName = imageName
+	if imgErr != nil {
+		pullErr := PullImage(imageFullName, ctx)
+		if pullErr != nil {
+			return "", xray.ErrMiniInfo(pullErr)
 		}
-		body, err = cli.ContainerCreate(ctx, config, hostConfig, nil, containerName)
+	}
+
+	body, err := DClient.ContainerCreate(ctx, config, hostConfig, nil, containerName)
+	if err != nil {
+		// 先删除之前的容器
+		_, removeErr := RemoveContainer(ctx, containerName)
+		if removeErr != nil {
+			return "", xray.ErrMiniInfo(err)
+		}
+		body, err = DClient.ContainerCreate(ctx, config, hostConfig, nil, containerName)
 		if err != nil {
-			log.Printf("删除之前的容器后再创建%s容器还有问题！！！", containerName)
-			return "", err
+			return "", xray.ErrMiniInfo(err)
 		}
 	}
 	return body.ID, nil
 }
 
-func CreateContainerWithVolume(cli *client.Client, ctx context.Context, config *container.Config, hostConfig *container.HostConfig, containerName, volumeName string) (string, error) {
+func CreateContainerWithVolume(ctx context.Context, config *container.Config, hostConfig *container.HostConfig, imageName, containerName, volumeName string) (string, error) {
 	// Create volume
-	volErr := createVolume(cli, ctx, volumeName)
+	volErr := createVolume(ctx, volumeName)
 	if volErr != nil {
-		return "", volErr
+		return "", xray.ErrMiniInfo(volErr)
 	}
-	id, createErr := CreateContainer(cli, ctx, config, hostConfig, containerName)
+	id, createErr := CreateContainer(ctx, config, hostConfig, imageName, containerName)
 	if createErr != nil {
-		_ = RemoveVolumeByName(cli, ctx, volumeName)
+		_ = RemoveVolumeByName(ctx, volumeName)
 		return "", createErr
 	}
 	return id, nil
 }
 
-func DeleteContainerWithVolume(cli *client.Client, ctx context.Context, containerID string, volumeName string) {
+func DeleteContainerWithVolume(ctx context.Context, containerID string, volumeName string) {
 	// 删除容器
-	_, _ = RemoveContainer(cli, ctx, containerID)
+	_, _ = RemoveContainer(ctx, containerID)
 }
 
-func RunContainer(cli *client.Client, ctx context.Context, containerID string) error {
+func RunContainer(ctx context.Context, containerID string) error {
 	// start container.
-	err := StartContainer(cli, ctx, containerID)
+	err := StartContainer(ctx, containerID)
 	if err != nil {
 		// 删除容器
-		_, _ = RemoveContainer(cli, ctx, containerID)
-		return err
+		_, _ = RemoveContainer(ctx, containerID)
+		return xray.ErrMiniInfo(err)
 	}
 
 RETYR:
-	info, _ := cli.ContainerInspect(ctx, containerID)
+	info, _ := DClient.ContainerInspect(ctx, containerID)
 	if info.State.Status == "running" {
 		time.Sleep(3 * time.Second)
 		goto RETYR
@@ -69,19 +77,19 @@ RETYR:
 }
 
 // 保证容器运行结束, 得到结果
-func RunContainerWithVolume(cli *client.Client, ctx context.Context, containerID string, volumeName string) error {
+func RunContainerWithVolume(ctx context.Context, containerID string, volumeName string) error {
 	// start container.
-	err := StartContainer(cli, ctx, containerID)
+	err := StartContainer(ctx, containerID)
 	if err != nil {
 		// 删除容器
-		_, _ = RemoveContainer(cli, ctx, containerID)
+		_, _ = RemoveContainer(ctx, containerID)
 		// 删除卷
-		_ = RemoveVolumeByName(cli, ctx, volumeName)
+		_ = RemoveVolumeByName(ctx, volumeName)
 		return err
 	}
 
 RETYR:
-	info, _ := cli.ContainerInspect(ctx, containerID)
+	info, _ := DClient.ContainerInspect(ctx, containerID)
 	if info.State.Status == "running" {
 		time.Sleep(3 * time.Second)
 		goto RETYR
@@ -90,62 +98,56 @@ RETYR:
 }
 
 // 启动
-func StartContainer(cli *client.Client, ctx context.Context, containerID string) error {
-	err := cli.ContainerStart(ctx, containerID, types.ContainerStartOptions{})
+func StartContainer(ctx context.Context, containerID string) error {
+	err := DClient.ContainerStart(ctx, containerID, types.ContainerStartOptions{})
 	if err != nil {
-		log.Printf("container %s start failed !!! %s", containerID, err)
-		return err
+		return xray.ErrMiniInfo(err)
 	}
 	return nil
 }
 
-func RemoveContainer(cli *client.Client, ctx context.Context, containerID string) (string, error) {
-	err := cli.ContainerRemove(ctx, containerID, types.ContainerRemoveOptions{})
+func RemoveContainer(ctx context.Context, containerID string) (string, error) {
+	err := DClient.ContainerRemove(ctx, containerID, types.ContainerRemoveOptions{})
 	if err != nil {
-		log.Printf("remove container %s failed !!! %s", containerID, err)
-		return "", err
+		return "", xray.ErrMiniInfo(err)
 	}
 	return containerID, nil
 }
 
 // Create volume
-func createVolume(cli *client.Client, ctx context.Context, volumeName string) error {
+func createVolume(ctx context.Context, volumeName string) error {
 	volumeType := volumeTypes.VolumesCreateBody{Name: volumeName}
-	_, err := cli.VolumeCreate(ctx, volumeType)
+	_, err := DClient.VolumeCreate(ctx, volumeType)
 	if err != nil {
-		log.Printf("create volume %s failed !!! %s", volumeName, err)
 		return err
 	}
 	return nil
 }
 
 // Remove volume
-func RemoveVolumeByName(cli *client.Client, ctx context.Context, volumeName string) error {
-	err := cli.VolumeRemove(ctx, volumeName, true)
+func RemoveVolumeByName(ctx context.Context, volumeName string) error {
+	err := DClient.VolumeRemove(ctx, volumeName, true)
 	if err != nil {
-		log.Printf("remove volume %s failed !!! %s", volumeName, err)
-		return err
+		return xray.ErrMiniInfo(err)
 	}
 	return nil
 }
 
 // Copy file from container by giving path
-func CopyFileFromContainer(cli *client.Client, ctx context.Context, containerID, path string) (io.ReadCloser, error) {
-	out, _, err := cli.CopyFromContainer(ctx, containerID, path)
+func CopyFileFromContainer(ctx context.Context, containerID, path string) (io.ReadCloser, error) {
+	out, _, err := DClient.CopyFromContainer(ctx, containerID, path)
 	if err != nil {
-		log.Printf("copy file from container %s failed !!! %s", containerID, err)
-		return nil, err
+		return nil, xray.ErrMiniInfo(err)
 	}
 	return out, nil
 }
 
 // Get logs from container
-func GetContainerLogs(cli *client.Client, ctx context.Context, containerID string) (io.ReadCloser, error) {
+func GetContainerLogs(ctx context.Context, containerID string) (io.ReadCloser, error) {
 	options := types.ContainerLogsOptions{ShowStdout: true}
-	out, err := cli.ContainerLogs(ctx, containerID, options)
+	out, err := DClient.ContainerLogs(ctx, containerID, options)
 	if err != nil {
-		log.Printf("get logs from %s failed !!! %s", containerID, err)
-		return nil, err
+		return nil, xray.ErrMiniInfo(err)
 	}
 	return out, nil
 }

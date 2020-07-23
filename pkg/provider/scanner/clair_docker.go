@@ -3,14 +3,13 @@ package scanner
 import (
 	"context"
 	"encoding/json"
+	"github.com/pkg/errors"
+	"github.com/q8s-io/heimdall/pkg/infrastructure/xray"
 	"io"
-	"log"
 	"strings"
 	"time"
 
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/client"
-
 	"github.com/q8s-io/heimdall/pkg/entity/model"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/docker"
 )
@@ -20,16 +19,8 @@ func ClairScan(imageName string) (model.ClairScanResult, error) {
 	clairConfig := model.Config.Clair
 	containerName := clairConfig.ContainerName
 
-	// Create a docker client from remote host
-	cli, err := client.NewClient(clairConfig.HostURL, clairConfig.Version, nil, nil)
-	if err != nil {
-		log.Println(err)
-		return scanResult, err
-	}
-
 	// The limits of container runtime is 10 minute
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
-
 	containerConfig := &container.Config{
 		Image: clairConfig.Image,
 		Cmd:   []string{imageName},
@@ -40,36 +31,40 @@ func ClairScan(imageName string) (model.ClairScanResult, error) {
 	}
 
 	// Create klar container
-	containerID, createErr := docker.CreateContainer(cli, ctx, containerConfig, hostConfig, containerName)
+	containerID, createErr := docker.CreateContainer(ctx, containerConfig, hostConfig, clairConfig.Image, containerName)
 	if createErr != nil {
 		return scanResult, createErr
 	}
 
 	// Start klar container
-	runErr := docker.RunContainer(cli, ctx, containerID)
+	runErr := docker.RunContainer(ctx, containerID)
 	if runErr != nil {
 		return scanResult, runErr
 	}
 
-	scanResult, scanErr := getClairResults(cli, ctx, containerID)
+	scanResult, scanErr := getClairResults(ctx, containerID)
 	if scanErr != nil {
 		return scanResult, scanErr
 	}
 	// Remove container klar
-	_, _ = docker.RemoveContainer(cli, ctx, containerID)
+	_, _ = docker.RemoveContainer(ctx, containerID)
 
 	// Close client
-	defer cli.Close()
+	defer func() {
+		closeErr := docker.DClient.Close()
+		if closeErr != nil {
+			xray.ErrMini(closeErr)
+		}
+	}()
 	// Close context
 	defer cancel()
 
 	return scanResult, nil
 }
 
-func getClairResults(cli *client.Client, ctx context.Context, containerID string) (model.ClairScanResult, error) {
+func getClairResults(ctx context.Context, containerID string) (model.ClairScanResult, error) {
 	result := model.ClairScanResult{}
-
-	out, logErr := docker.GetContainerLogs(cli, ctx, containerID)
+	out, logErr := docker.GetContainerLogs(ctx, containerID)
 	if logErr != nil {
 		return result, logErr
 	}
@@ -79,11 +74,10 @@ func getClairResults(cli *client.Client, ctx context.Context, containerID string
 
 	bytes := deletePreChar(buf.String())
 	if len(bytes) == 0 {
-		log.Print("日志长度为0 !!!")
+		xray.ErrMini(errors.New("the len of clair result is 0"))
 	}
 	if unmarshalErr := json.Unmarshal(bytes, &result); unmarshalErr != nil {
-		log.Printf("error deserializing JSON: %s", unmarshalErr)
-		return result, unmarshalErr
+		return result, xray.ErrMiniInfo(unmarshalErr)
 	}
 	return result, nil
 }

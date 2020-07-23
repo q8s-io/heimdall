@@ -53,7 +53,7 @@ type trivy struct {
 	HostURL       string `toml:"trivy_url"`
 	Version       string `toml:"version"`
 	VolumeName    string `toml:"volume_name"`
-	ContainerName string `toml:"containerName"`
+	ContainerName string `toml:"container_name"`
 	Image         string `toml:"image"`
 	// 容器挂载卷的路径
 	TargetPath   string   `toml:"target_path"`
@@ -66,5 +66,5 @@ type clair struct {
 	Version       string `toml:"version"`
 	ClairADDR     string `toml:"clair_addr"`
 	Image         string `toml:"image"`
-	ContainerName string `toml:"containerName"`
+	ContainerName string `toml:"container_name"`
 }

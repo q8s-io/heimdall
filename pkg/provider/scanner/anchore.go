@@ -2,6 +2,7 @@ package scanner
 
 import (
 	"encoding/json"
+	"github.com/q8s-io/heimdall/pkg/infrastructure/xray"
 	"log"
 	"time"
 
@@ -30,6 +31,9 @@ func JobAnchore() {
 		// get anchore scan data
 		vulnRequestURL := model.Config.Anchore.AnchoreURL + "/v1/images/" + anchoreRequestInfo.ImageDigest + "/vuln/all"
 		vulnData, getErr := AnchoreGET(vulnRequestURL)
+		if getErr != nil {
+			xray.ErrTaskInfo(getErr, jobScannerMsg.TaskID, jobScannerMsg.JobID)
+		}
 
 		// prepare anchore scan result data
 		jobAnchoreInfo := PrepareAnchoreScanResult(jobScannerMsg, vulnData, getErr)
@@ -55,14 +59,16 @@ RETRY:
 
 func PrepareAnchoreScanResult(jobScannerMsg *model.JobScannerMsg, vulnData map[string]interface{}, runErr error) *model.JobScannerInfo {
 	var cveList []map[string]string
-	for _, vulnInfo := range vulnData["vulnerabilities"].([]interface{}) {
-		cve := make(map[string]string)
-		cve["package_full_nale"] = vulnInfo.(map[string]interface{})["package"].(string)
-		cve["package_name"] = vulnInfo.(map[string]interface{})["package_name"].(string)
-		cve["package_version"] = vulnInfo.(map[string]interface{})["package_version"].(string)
-		cve["cve"] = vulnInfo.(map[string]interface{})["vuln"].(string)
-		cve["cve_url"] = vulnInfo.(map[string]interface{})["url"].(string)
-		cveList = append(cveList, cve)
+	if vulnData != nil && vulnData["vulnerabilities"] != nil {
+		for _, vulnInfo := range vulnData["vulnerabilities"].([]interface{}) {
+			cve := make(map[string]string)
+			cve["package_full_nale"] = vulnInfo.(map[string]interface{})["package"].(string)
+			cve["package_name"] = vulnInfo.(map[string]interface{})["package_name"].(string)
+			cve["package_version"] = vulnInfo.(map[string]interface{})["package_version"].(string)
+			cve["cve"] = vulnInfo.(map[string]interface{})["vuln"].(string)
+			cve["cve_url"] = vulnInfo.(map[string]interface{})["url"].(string)
+			cveList = append(cveList, cve)
+		}
 	}
 	jobScannerInfo := new(model.JobScannerInfo)
 	jobScannerInfo.TaskID = jobScannerMsg.TaskID

@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+
+  heimdall-analyzer:
+    image: heimdall:latest
+    network_mode: "host"
+    command: -type analyzer
+
+  heimdall-anchore:
+    image: heimdall:latest
+    network_mode: "host"
+    command: -type scanner-anchore
+
+  heimdall-trivy:
+    image: heimdall:latest
+    network_mode: "host"
+    command: -type scanner-trivy
+
+  heimdall-clair:
+    image: heimdall:latest
+    network_mode: "host"
+    command: -type scanner-clair

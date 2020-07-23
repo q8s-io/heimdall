@@ -3,15 +3,13 @@ package scanner
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
-	"log"
 	"strings"
 	"time"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/mount"
-	"github.com/docker/docker/client"
-
 	"github.com/q8s-io/heimdall/pkg/entity/model"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/docker"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/xray"
@@ -25,13 +23,6 @@ func TrivyScan(imageName string) (model.TrivyScanResult, error) {
 	path := trivyConfig.TargetPath + trivyConfig.FileName
 	containerName := trivyConfig.ContainerName
 	volumeName := trivyConfig.VolumeName
-
-	// Create a docker client from remote host
-	cli, cErr := client.NewClient(trivyConfig.HostURL, trivyConfig.Version, nil, nil)
-	if cErr != nil {
-		xray.ErrMini(cErr)
-		return scanResult, cErr
-	}
 
 	// The runtime of limits is 10 minute
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
@@ -53,58 +44,61 @@ func TrivyScan(imageName string) (model.TrivyScanResult, error) {
 	}
 
 	// Create trivy container
-	containerID, crtErr := docker.CreateContainerWithVolume(cli, ctx, containerConfig, hostConfig, containerName, volumeName)
+	containerID, crtErr := docker.CreateContainerWithVolume(ctx, containerConfig, hostConfig, trivyConfig.Image, containerName, volumeName)
 	if crtErr != nil {
 		return scanResult, crtErr
 	}
 
 	// Run trivy container in id
-	runErr := docker.RunContainerWithVolume(cli, ctx, containerID, volumeName)
+	runErr := docker.RunContainerWithVolume(ctx, containerID, volumeName)
 	if runErr != nil {
 		return scanResult, runErr
 	}
 
 	// Get result
-	scanResult, getErr := getTrivyResults(cli, ctx, containerID, path)
+	scanResult, getErr := getTrivyResults(ctx, containerID, path)
 	if getErr != nil {
 		return scanResult, getErr
 	}
 	// Delete container trivy
-	docker.DeleteContainerWithVolume(cli, ctx, containerID, volumeName)
+	docker.DeleteContainerWithVolume(ctx, containerID, volumeName)
 
 	// Remove volume
-	_ = docker.RemoveVolumeByName(cli, ctx, volumeName)
+	_ = docker.RemoveVolumeByName(ctx, volumeName)
 
 	// Close client
-	defer cli.Close()
+	defer func() {
+		closeErr := docker.DClient.Close()
+		if closeErr != nil {
+			xray.ErrMini(closeErr)
+		}
+	}()
 	// Close context
 	defer cancel()
 
 	return scanResult, nil
 }
 
-func getTrivyResults(cli *client.Client, ctx context.Context, containerID string, path string) (model.TrivyScanResult, error) {
+func getTrivyResults(ctx context.Context, containerID string, path string) (model.TrivyScanResult, error) {
 	var data []*model.TrivyScanResult
 	result := model.TrivyScanResult{}
 
-	out, cpErr := docker.CopyFileFromContainer(cli, ctx, containerID, path)
+	out, cpErr := docker.CopyFileFromContainer(ctx, containerID, path)
 	if cpErr != nil {
 		return result, cpErr
 	}
 
-	// data, err := ioutil.ReadAll(out)
-	
 	buf := new(strings.Builder)
 	_, _ = io.Copy(buf, out)
 
 	// 去除前后无用字符
 	bytes := deletePreAndSufSpace(buf.String())
 	if len(bytes) == 0 {
+		xray.ErrMini(errors.New("the len of trivy result is 0"))
 	}
 
 	if unmarshalErr := json.Unmarshal(bytes, &data); unmarshalErr != nil {
-		log.Printf("error deserializing JSON: %v", unmarshalErr)
-		return result, unmarshalErr
+		return result, xray.ErrMiniInfo(unmarshalErr)
 	}
 
 	result = *data[0]
