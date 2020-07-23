@@ -15,8 +15,8 @@ TOOLS_DIR := tools
 TOOLS_BIN_DIR := $(TOOLS_DIR)/bin
 
 # Define Docker related variables. Releases should modify and double check these vars.
-REGISTRY :=
-IMAGE :=
+REGISTRY := uhub.service.ucloud.cn/devsecops
+IMAGE := heimdall
 CONTROLLER_IMG := $(REGISTRY)/$(IMAGE)
 TAG := dev
 ARCH := amd64
@@ -35,7 +35,7 @@ GOLANGCI_LINT := $(TOOLS_BIN_DIR)/golangci-lint
 .PHONY: server
 
 run:
-	GOPROXY=https://goproxy.io GO111MODULE=on go run app.go -conf "./configs/pro.toml"
+	GO111MODULE=on go run app.go -conf "./configs/pro.toml"
 
 server:
 	@echo "version: $(VERSION)"
