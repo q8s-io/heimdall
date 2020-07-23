@@ -35,7 +35,7 @@ GOLANGCI_LINT := $(TOOLS_BIN_DIR)/golangci-lint
 .PHONY: server
 
 run:
-	GO111MODULE=on go run app.go -conf "./configs/pro.toml"
+	GOPROXY=https://goproxy.cn GO111MODULE=on go run app.go -conf "./configs/pro.toml"
 
 server:
 	@echo "version: $(VERSION)"
