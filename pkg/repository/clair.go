@@ -38,8 +38,8 @@ func UpdateJobClair(jobScanner entity.JobScanner) {
 	jobClair.JobScanner = jobScanner
 
 	rows, err := mysql.Client.Model(&entity.JobClair{}).
-		Updates(jobClair).
 		Scopes(mysql.QueryByJobID(jobScanner.JobID)).
+		Updates(jobClair).
 		Rows()
 	if err != nil {
 		xray.ErrMini(err)

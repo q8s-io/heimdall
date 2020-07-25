@@ -24,7 +24,7 @@ func Init() {
 	}
 	// 链接池
 	Client.DB().SetMaxOpenConns(5)
-
+	//Client.LogMode(true)
 	go func() {
 		taskConnect := time.NewTicker(3 * time.Second)
 		for {

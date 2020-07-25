@@ -37,10 +37,10 @@ func GetTaskImageScan(imageRequestInfo model.ImageRequestInfo) *[]entity.TaskIma
 	return taskImageScanList
 }
 
-func UpdateTaskImageScanDigest(taskID, igest string) {
+func UpdateTaskImageScanDigest(taskID, digest string) {
 	rows, err := mysql.Client.Model(&entity.ImageVuln{}).
-		Update("image_digest", igest).
 		Scopes(mysql.QueryByTaskID(taskID)).
+		Update("image_digest", digest).
 		Rows()
 	if err != nil {
 		xray.ErrMini(err)
@@ -51,8 +51,8 @@ func UpdateTaskImageScanDigest(taskID, igest string) {
 
 func UpdateTaskImageScanStatus(taskID, status string) {
 	rows, err := mysql.Client.Model(&entity.ImageVuln{}).
-		Update("task_status", status).
 		Scopes(mysql.QueryByTaskID(taskID)).
+		Update("task_status", status).
 		Rows()
 	if err != nil {
 		xray.ErrMini(err)
@@ -63,8 +63,8 @@ func UpdateTaskImageScanStatus(taskID, status string) {
 
 func UpdateTaskImageScanActive(imageName string, active int) {
 	rows, err := mysql.Client.Model(&entity.ImageVuln{}).
-		Updates(map[string]interface{}{"active": active, "task_status": model.StatusSucceed}).
 		Where("image_name = ?", imageName).
+		Updates(map[string]interface{}{"active": active, "task_status": model.StatusSucceed}).
 		Rows()
 	if err != nil {
 		xray.ErrMini(err)

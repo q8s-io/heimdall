@@ -12,7 +12,7 @@ WORKDIR $GOPATH/src/$CODEPATH
 
 COPY . .
 
-RUN GO111MODULE=on CGO_ENABLED=0 GOOS=linux go build -o /app/app app.go
+RUN GO111MODULE=on CGO_ENABLED=0 GOOS=linux GOPROXY=https://mirrors.aliyun.com/goproxy/ go build -o /app/app app.go
 
 # build server
 FROM alpine:3.8

@@ -38,7 +38,7 @@ func JobClair() {
 
 		// send to scancenter
 		requestJSON, _ := json.Marshal(jobClairInfo)
-		log.Printf("anchore process succeed %s", imageName)
+		log.Printf("clair process succeed %s", imageName)
 		_ = net.HTTPPUT(model.Config.ScanCenter.ClairURL, string(requestJSON))
 	}
 }

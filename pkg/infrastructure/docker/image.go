@@ -29,7 +29,10 @@ PULLIMAGE:
 		case "repository name must be canonical":
 			imageFullName = fmt.Sprintf("docker.io/library/%s", imageName)
 			goto PULLIMAGE
+		default:
+			return nil, nil
 		}
+
 	}
 
 	// inspect image

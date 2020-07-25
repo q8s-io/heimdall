@@ -23,5 +23,5 @@ func UpdateJobImageAnalyzer(jobImageAnalyzerInfo *model.JobImageAnalyzerInfo) {
 	jobImageAnalyzer := convert.JobImageAnalyzer(jobImageAnalyzerInfo, 1)
 	repository.UpdateJobImageAnalyzer(*jobImageAnalyzer)
 	// mark job status
-	repository.SetJobImageAnalyzerStatus(jobImageAnalyzer.TaskID, model.StatusSucceed)
+	repository.SetJobImageAnalyzerStatus(jobImageAnalyzer.TaskID, jobImageAnalyzerInfo.JobStatus)
 }

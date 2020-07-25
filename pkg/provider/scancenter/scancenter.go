@@ -21,6 +21,11 @@ func TaskImageScanRotaryCreate(imageRequestInfo *model.ImageRequestInfo) (*model
 func TaskImageScanRotaryAnalyzer(jobImageAnalyzerInfo *model.JobImageAnalyzerInfo) {
 	UpdateTaskImageScanDigest(jobImageAnalyzerInfo)
 	UpdateJobImageAnalyzer(jobImageAnalyzerInfo)
+	if jobImageAnalyzerInfo.JobStatus == model.StatusFailed {
+		// 删除redis缓存和标注扫描任务失败
+		JudgeTaskRotary(jobImageAnalyzerInfo.TaskID)
+		return
+	}
 	PrepareJobAnchore(jobImageAnalyzerInfo)
 	PrepareJobTrivy(jobImageAnalyzerInfo)
 	PrepareJobClair(jobImageAnalyzerInfo)

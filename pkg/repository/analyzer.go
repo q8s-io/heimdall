@@ -19,8 +19,8 @@ func UpdateJobImageAnalyzer(jobImageAnalyzer entity.JobImageAnalyzer) {
 
 	// 使用 struct 更新多个属性，只会更新其中有变化且为非零值的字段
 	rows, err := mysql.Client.Model(&entity.JobAnalyzer{}).
-		Updates(jobAnalyzer).
 		Scopes(mysql.QueryByJobID(jobImageAnalyzer.JobID)).
+		Updates(jobAnalyzer).
 		Rows()
 	if err != nil {
 		xray.ErrMini(err)

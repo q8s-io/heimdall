@@ -28,10 +28,24 @@ func JobAnalyzer() {
 		imageName := jobScannerMsg.ImageName
 		digest, layers := docker.ImageAnalyzer(imageName)
 		jobImageAnalyzerInfo := convert.JobImageAnalyzerInfoByMsg(jobScannerMsg, digest, layers)
-
+		if digest == nil || layers == nil {
+			//// 镜像下载失败，直接标记失败。不触发其他引擎的任务。
+			//// 删除analyzer表中任务。
+			//xray.ErrMini(errors.New("download mirror failed"))
+			//repository.DeleteJobImageAnalyzer(jobImageAnalyzerInfo.TaskID)
+			//// 标记任务失败。
+			//repository.UpdateTaskImageScanStatus(jobImageAnalyzerInfo.TaskID, model.StatusFailed)
+			//// redis缓存清除
+			//// 直接返回，不触发其他scanner
+			jobImageAnalyzerInfo.JobStatus = model.StatusFailed
+		}
 		// send data to scancenter
 		requestJSON, _ := json.Marshal(jobImageAnalyzerInfo)
-		log.Printf("analyzer process succeed %s", imageName)
+		if jobImageAnalyzerInfo.JobStatus == model.StatusSucceed {
+			log.Printf("analyzer process succeed %s", imageName)
+		} else {
+			log.Printf("analyzer process failed %s", imageName)
+		}
 		_ = net.HTTPPUT(model.Config.ScanCenter.AnalyzerURL, string(requestJSON))
 	}
 }

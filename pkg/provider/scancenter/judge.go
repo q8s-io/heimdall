@@ -49,9 +49,12 @@ func JudgeTaskRotary(taskID string) {
 
 func GetTaskCurrentStatus(taskID string) string {
 	taskStatus := repository.GetTaskStatus(taskID)
+	// 镜像分析失败则任务失败
+	if taskStatus["analyzed"] == model.StatusFailed {
+		return model.StatusFailed
+	}
 	// count success num
 	succeedNum := 0
-
 	for _, v := range taskStatus {
 		// 若还有在运行的引擎，直接返回运行态
 		if v == model.StatusRunning {

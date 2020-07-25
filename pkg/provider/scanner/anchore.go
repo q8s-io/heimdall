@@ -50,6 +50,9 @@ func TriggerAnchoreScan(anchoreRequestInfo *model.AnchoreRequestInfo) {
 	triggerURL := model.Config.Anchore.AnchoreURL + "/v1/images"
 RETRY:
 	anchoreData := AnchorePOST(triggerURL, string(triggerRequest))
+	if len(anchoreData) == 0 {
+		return
+	}
 	analysisStatus := anchoreData[0]["analysis_status"].(string)
 	if analysisStatus != "analyzed" {
 		time.Sleep(3 * time.Second)

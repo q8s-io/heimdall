@@ -19,9 +19,9 @@ version = "v1.40"
 
 [scancenter]
 analyzer_url = "http://117.50.109.103:12001/api/images/analyzer/"
-anchore_url = "http://10.16.29.51:12001/api/images/anchore/"
-trivy_url = "http://10.16.29.51:12001/api/images/trivy/"
-clair_url = "http://10.16.29.51:12001/api/images/clair/"
+anchore_url = "http://117.50.109.103:12001/api/images/anchore/"
+trivy_url = "http://117.50.109.103:12001/api/images/trivy/"
+clair_url = "http://117.50.109.103:12001/api/images/clair/"
 
 [anchore]
 anchore_url = "http://10.16.29.51:8228"

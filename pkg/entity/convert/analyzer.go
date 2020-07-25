@@ -41,13 +41,15 @@ func JobImageAnalyzerInfoByScan(taskImageScanInfo *model.TaskImageScanInfo) *mod
 }
 
 func JobImageAnalyzerInfoByMsg(jobScannerMsg *model.JobScannerMsg, digest, layers []string) *model.JobImageAnalyzerInfo {
-	digestList := strings.Split(digest[len(digest)-1], "@")
 	jobImageAnalyzerInfo := new(model.JobImageAnalyzerInfo)
 	jobImageAnalyzerInfo.TaskID = jobScannerMsg.TaskID
 	jobImageAnalyzerInfo.JobID = jobScannerMsg.JobID
 	jobImageAnalyzerInfo.JobStatus = model.StatusSucceed
 	jobImageAnalyzerInfo.ImageName = jobScannerMsg.ImageName
-	jobImageAnalyzerInfo.ImageDigest = digestList[len(digestList)-1]
+	if digest != nil && len(digest) != 0 {
+		digestList := strings.Split(digest[len(digest)-1], "@")
+		jobImageAnalyzerInfo.ImageDigest = digestList[len(digestList)-1]
+	}
 	jobImageAnalyzerInfo.ImageLayers = layers
 	return jobImageAnalyzerInfo
 }
