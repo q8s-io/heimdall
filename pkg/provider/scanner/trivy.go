@@ -13,7 +13,7 @@ import (
 	"github.com/q8s-io/heimdall/pkg/repository"
 )
 
-func JobTrivy() {
+func JobTrivy(scanTime int) {
 	dockerConfig := model.Config.Docker
 	docker.Init(dockerConfig.Host, dockerConfig.Version, nil, nil)
 	// consumer msg from mq
@@ -28,7 +28,7 @@ func JobTrivy() {
 		imageName := jobScannerMsg.ImageName
 
 		// get scanning data
-		vulnData, getErr := TrivyScan(imageName)
+		vulnData, getErr := TrivyScan(imageName, scanTime)
 		if getErr != nil {
 			xray.ErrTaskInfo(getErr, jobScannerMsg.TaskID, jobScannerMsg.JobID)
 		}
@@ -38,7 +38,7 @@ func JobTrivy() {
 
 		// send to scancenter
 		requestJSON, _ := json.Marshal(jobTrivyInfo)
-		log.Printf("trivy process succeed %s", imageName)
+		log.Printf("clair process %s \t %s", imageName, jobTrivyInfo.JobStatus)
 		_ = net.HTTPPUT(model.Config.ScanCenter.TrivyURL, string(requestJSON))
 	}
 }

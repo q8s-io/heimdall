@@ -13,7 +13,7 @@ import (
 	"github.com/q8s-io/heimdall/pkg/repository"
 )
 
-func JobClair() {
+func JobClair(scanTime int) {
 	dockerConfig := model.Config.Docker
 	docker.Init(dockerConfig.Host, dockerConfig.Version, nil, nil)
 	// consumer msg from mq
@@ -28,7 +28,7 @@ func JobClair() {
 		imageName := jobScannerMsg.ImageName
 
 		// get scanning data
-		vulnData, getErr := ClairScan(imageName)
+		vulnData, getErr := ClairScan(imageName, scanTime)
 		if getErr != nil {
 			xray.ErrTaskInfo(getErr, jobScannerMsg.TaskID, jobScannerMsg.JobID)
 		}
@@ -38,7 +38,7 @@ func JobClair() {
 
 		// send to scancenter
 		requestJSON, _ := json.Marshal(jobClairInfo)
-		log.Printf("clair process succeed %s", imageName)
+		log.Printf("clair process %s \t %s", imageName, jobClairInfo.JobStatus)
 		_ = net.HTTPPUT(model.Config.ScanCenter.ClairURL, string(requestJSON))
 	}
 }

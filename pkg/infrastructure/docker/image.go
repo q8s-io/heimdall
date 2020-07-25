@@ -14,8 +14,8 @@ import (
 
 var imageFullName string
 
-func ImageAnalyzer(imageName string) ([]string, []string) {
-	ctx, cancel := context.WithTimeout(context.Background(), 600*time.Second)
+func ImageAnalyzer(imageName string, scanTime int) ([]string, []string) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*time.Duration(scanTime))
 	defer cancel()
 
 	imageFullName = imageName

@@ -2,6 +2,7 @@ package scanner
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/xray"
 	"log"
 	"time"
@@ -13,7 +14,7 @@ import (
 	"github.com/q8s-io/heimdall/pkg/repository"
 )
 
-func JobAnchore() {
+func JobAnchore(scanTime int) {
 	// consumer msg from mq
 	repository.ConsumerMsgJobAnchore()
 	jobScannerMsg := new(model.JobScannerMsg)
@@ -26,7 +27,7 @@ func JobAnchore() {
 		anchoreRequestInfo := convert.AnchoreRequestInfo(jobScannerMsg)
 
 		// trigger anchore scan
-		TriggerAnchoreScan(anchoreRequestInfo)
+		TriggerAnchoreScan(anchoreRequestInfo, scanTime)
 
 		// get anchore scan data
 		vulnRequestURL := model.Config.Anchore.AnchoreURL + "/v1/images/" + anchoreRequestInfo.ImageDigest + "/vuln/all"
@@ -40,20 +41,31 @@ func JobAnchore() {
 
 		// send data to scancenter
 		requestJSON, _ := json.Marshal(jobAnchoreInfo)
-		log.Printf("anchore process succeed %s", anchoreRequestInfo.ImageName)
+		log.Printf("anchore process  %s \t %s", jobAnchoreInfo.ImageName, jobAnchoreInfo.JobStatus)
 		_ = net.HTTPPUT(model.Config.ScanCenter.AnchoreURL, string(requestJSON))
 	}
 }
 
-func TriggerAnchoreScan(anchoreRequestInfo *model.AnchoreRequestInfo) {
+func TriggerAnchoreScan(anchoreRequestInfo *model.AnchoreRequestInfo, scanTime int) {
 	triggerRequest, _ := json.Marshal(anchoreRequestInfo)
 	triggerURL := model.Config.Anchore.AnchoreURL + "/v1/images"
+	// 计时
+	startTime := time.Now()
 RETRY:
-	anchoreData := AnchorePOST(triggerURL, string(triggerRequest))
-	if len(anchoreData) == 0 {
+	// 超时判断
+	if time.Since(startTime) > time.Minute*time.Duration(scanTime) {
 		return
 	}
-	analysisStatus := anchoreData[0]["analysis_status"].(string)
+	anchoreData := AnchorePOST(triggerURL, string(triggerRequest))
+	if len(anchoreData) == 0 {
+		xray.ErrMini(errors.New("anchoreData len is 0"))
+		return
+	}
+	analysisStatus, ok := anchoreData[0]["analysis_status"].(string)
+	if !ok {
+		xray.ErrMini(errors.New("alert error"))
+		return
+	}
 	if analysisStatus != "analyzed" {
 		time.Sleep(3 * time.Second)
 		goto RETRY

@@ -7,6 +7,6 @@ import (
 func Status() {
 	pingErr := Client.DB().Ping()
 	if pingErr != nil {
-		xray.ErrMini(pingErr)
+		panic(xray.ErrMiniInfo(pingErr))
 	}
 }

@@ -14,13 +14,12 @@ import (
 	"github.com/q8s-io/heimdall/pkg/infrastructure/docker"
 )
 
-func ClairScan(imageName string) (model.ClairScanResult, error) {
+func ClairScan(imageName string, scanTime int) (model.ClairScanResult, error) {
 	scanResult := model.ClairScanResult{}
 	clairConfig := model.Config.Clair
 	containerName := clairConfig.ContainerName
-
-	// The limits of container runtime is 10 minute
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+	// The limits of container runtime is ScanTime minute
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*time.Duration(scanTime))
 	containerConfig := &container.Config{
 		Image: clairConfig.Image,
 		Cmd:   []string{imageName},

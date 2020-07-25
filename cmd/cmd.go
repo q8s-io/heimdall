@@ -14,32 +14,37 @@ import (
 )
 
 var confPath = flag.String("conf", "./configs/pro.toml", "The path of config.")
-var serverTpye = flag.String("type", "", "The type of server.")
+
+// 服务类型
+var serverType = flag.String("type", "scancenter", "The type of server.")
+
+// scanner扫描时间，单位分钟
+var scanTime = flag.Int("scanTime", 5, "The spend time of scanner.")
 
 func Run() {
 	flag.Parse()
 	// init
 	process.Init(*confPath)
 	// app
-	RunApp(*serverTpye)
+	RunApp(*serverType)
 }
 
-func RunApp(serverTpye string) {
-	switch serverTpye {
+func RunApp(serverType string) {
+	switch serverType {
 	case "scancenter":
 		RunScanCenter()
 	case "analyzer":
-		RunAnalyzer()
+		RunAnalyzer(*scanTime)
 	case "scanner-anchore":
-		RunScannerAnchore()
+		RunScannerAnchore(*scanTime)
 	case "scanner-trivy":
-		RunScannerTrivy()
+		RunScannerTrivy(*scanTime)
 	case "scanner-clair":
-		RunScannerClair()
+		RunScannerClair(*scanTime)
 	case "tool":
 		RunTool()
 	default:
-		log.Println(serverTpye)
+		log.Println(serverType)
 	}
 }
 
@@ -50,25 +55,25 @@ func RunScanCenter() {
 	router.RunAPI()
 }
 
-func RunAnalyzer() {
+func RunAnalyzer(scanTime int) {
 	kafka.InitConsumer()
-	go analyzer.JobAnalyzer()
+	go analyzer.JobAnalyzer(scanTime)
 	analyzer.Signal()
 }
 
-func RunScannerAnchore() {
+func RunScannerAnchore(scanTime int) {
 	kafka.InitConsumer()
-	scanner.JobAnchore()
+	scanner.JobAnchore(scanTime)
 }
 
-func RunScannerTrivy() {
+func RunScannerTrivy(scanTime int) {
 	kafka.InitConsumer()
-	scanner.JobTrivy()
+	scanner.JobTrivy(scanTime)
 }
 
-func RunScannerClair() {
+func RunScannerClair(scanTime int) {
 	kafka.InitConsumer()
-	scanner.JobClair()
+	scanner.JobClair(scanTime)
 }
 
 func RunTool() {

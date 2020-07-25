@@ -15,7 +15,7 @@ import (
 	"github.com/q8s-io/heimdall/pkg/infrastructure/xray"
 )
 
-func TrivyScan(imageName string) (model.TrivyScanResult, error) {
+func TrivyScan(imageName string, scanTime int) (model.TrivyScanResult, error) {
 	scanResult := model.TrivyScanResult{}
 	trivyConfig := model.Config.Trivy
 
@@ -24,9 +24,8 @@ func TrivyScan(imageName string) (model.TrivyScanResult, error) {
 	containerName := trivyConfig.ContainerName
 	volumeName := trivyConfig.VolumeName
 
-	// The runtime of limits is 10 minute
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
-
+	// The limits of container runtime is ScanTime minute
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*time.Duration(scanTime))
 	// Initialize config of trivy container
 	containerConfig := &container.Config{
 		Image: trivyConfig.Image,

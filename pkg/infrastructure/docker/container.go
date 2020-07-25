@@ -66,7 +66,6 @@ func RunContainer(ctx context.Context, containerID string) error {
 		_, _ = RemoveContainer(ctx, containerID)
 		return xray.ErrMiniInfo(err)
 	}
-
 RETYR:
 	info, _ := DClient.ContainerInspect(ctx, containerID)
 	if info.State.Status == "running" {
@@ -87,7 +86,6 @@ func RunContainerWithVolume(ctx context.Context, containerID string, volumeName 
 		_ = RemoveVolumeByName(ctx, volumeName)
 		return err
 	}
-
 RETYR:
 	info, _ := DClient.ContainerInspect(ctx, containerID)
 	if info.State.Status == "running" {
