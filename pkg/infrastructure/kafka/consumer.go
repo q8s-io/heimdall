@@ -58,7 +58,6 @@ func ConsumerMsg(topic string) {
 			if ctx.Err() != nil {
 				return
 			}
-			consumer.ready = make(chan bool)
 		}
 	}()
 

@@ -24,7 +24,7 @@ trivy_url = "http://117.50.109.103:12001/api/images/trivy/"
 clair_url = "http://117.50.109.103:12001/api/images/clair/"
 
 [anchore]
-anchore_url = "http://10.16.29.51:8228"
+anchore_url = "http://127.0.0.1:8228"
 username = "admin"
 password = "foobar"
 
@@ -42,5 +42,5 @@ container_cmd = ["-f", "json", "-o"]
 clair_url = "http://127.0.0.1:2375"
 version = "v1.40"
 clair_addr = "CLAIR_ADDR=127.0.0.1"
-image = "klar"
+image = "uhub.service.ucloud.cn/devsecops/klar:latest"
 container_name = "klar_container"

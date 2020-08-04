@@ -52,6 +52,7 @@ func RunScanCenter() {
 	mysql.Init()
 	redis.Init()
 	kafka.InitSyncProducer()
+	kafka.InitAsyncProducer()
 	router.RunAPI()
 }
 

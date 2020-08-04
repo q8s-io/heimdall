@@ -2,7 +2,6 @@ package docker
 
 import (
 	"context"
-	"github.com/q8s-io/heimdall/pkg/infrastructure/xray"
 	"io"
 	"time"
 
@@ -15,12 +14,12 @@ import (
 func CreateContainer(ctx context.Context, config *container.Config, hostConfig *container.HostConfig, imageName, containerName string) (string, error) {
 	// 先查看是否有镜像。
 	imgErr := InspectImageExist(imageName, ctx)
-	// 在配置文件中最好配置全名
+	// 在配置文件中配置镜像全名
 	imageFullName = imageName
 	if imgErr != nil {
 		pullErr := PullImage(imageFullName, ctx)
 		if pullErr != nil {
-			return "", xray.ErrMiniInfo(pullErr)
+			return "", pullErr
 		}
 	}
 
@@ -29,11 +28,11 @@ func CreateContainer(ctx context.Context, config *container.Config, hostConfig *
 		// 先删除之前的容器
 		_, removeErr := RemoveContainer(ctx, containerName)
 		if removeErr != nil {
-			return "", xray.ErrMiniInfo(err)
+			return "", removeErr
 		}
 		body, err = DClient.ContainerCreate(ctx, config, hostConfig, nil, containerName)
 		if err != nil {
-			return "", xray.ErrMiniInfo(err)
+			return "", err
 		}
 	}
 	return body.ID, nil
@@ -43,7 +42,7 @@ func CreateContainerWithVolume(ctx context.Context, config *container.Config, ho
 	// Create volume
 	volErr := createVolume(ctx, volumeName)
 	if volErr != nil {
-		return "", xray.ErrMiniInfo(volErr)
+		return "", volErr
 	}
 	id, createErr := CreateContainer(ctx, config, hostConfig, imageName, containerName)
 	if createErr != nil {
@@ -64,10 +63,14 @@ func RunContainer(ctx context.Context, containerID string) error {
 	if err != nil {
 		// 删除容器
 		_, _ = RemoveContainer(ctx, containerID)
-		return xray.ErrMiniInfo(err)
+		return err
 	}
 RETYR:
-	info, _ := DClient.ContainerInspect(ctx, containerID)
+	info, inspectErr := DClient.ContainerInspect(ctx, containerID)
+	// 防止获取失败，获取不到就返回。
+	if inspectErr != nil {
+		return inspectErr
+	}
 	if info.State.Status == "running" {
 		time.Sleep(3 * time.Second)
 		goto RETYR
@@ -87,7 +90,11 @@ func RunContainerWithVolume(ctx context.Context, containerID string, volumeName 
 		return err
 	}
 RETYR:
-	info, _ := DClient.ContainerInspect(ctx, containerID)
+	info, inspectErr := DClient.ContainerInspect(ctx, containerID)
+	// 防止获取失败，获取不到就返回。
+	if inspectErr != nil {
+		return inspectErr
+	}
 	if info.State.Status == "running" {
 		time.Sleep(3 * time.Second)
 		goto RETYR
@@ -99,15 +106,16 @@ RETYR:
 func StartContainer(ctx context.Context, containerID string) error {
 	err := DClient.ContainerStart(ctx, containerID, types.ContainerStartOptions{})
 	if err != nil {
-		return xray.ErrMiniInfo(err)
+		return err
 	}
 	return nil
 }
 
 func RemoveContainer(ctx context.Context, containerID string) (string, error) {
-	err := DClient.ContainerRemove(ctx, containerID, types.ContainerRemoveOptions{})
+	// 必须强制删除。
+	err := DClient.ContainerRemove(ctx, containerID, types.ContainerRemoveOptions{Force: true})
 	if err != nil {
-		return "", xray.ErrMiniInfo(err)
+		return "", err
 	}
 	return containerID, nil
 }
@@ -126,7 +134,7 @@ func createVolume(ctx context.Context, volumeName string) error {
 func RemoveVolumeByName(ctx context.Context, volumeName string) error {
 	err := DClient.VolumeRemove(ctx, volumeName, true)
 	if err != nil {
-		return xray.ErrMiniInfo(err)
+		return err
 	}
 	return nil
 }
@@ -135,7 +143,7 @@ func RemoveVolumeByName(ctx context.Context, volumeName string) error {
 func CopyFileFromContainer(ctx context.Context, containerID, path string) (io.ReadCloser, error) {
 	out, _, err := DClient.CopyFromContainer(ctx, containerID, path)
 	if err != nil {
-		return nil, xray.ErrMiniInfo(err)
+		return nil, err
 	}
 	return out, nil
 }
@@ -145,7 +153,7 @@ func GetContainerLogs(ctx context.Context, containerID string) (io.ReadCloser, e
 	options := types.ContainerLogsOptions{ShowStdout: true}
 	out, err := DClient.ContainerLogs(ctx, containerID, options)
 	if err != nil {
-		return nil, xray.ErrMiniInfo(err)
+		return nil, err
 	}
 	return out, nil
 }

@@ -29,12 +29,16 @@ func JobClair(scanTime int) {
 
 		// get scanning data
 		vulnData, getErr := ClairScan(imageName, scanTime)
-		if getErr != nil {
-			xray.ErrTaskInfo(getErr, jobScannerMsg.TaskID, jobScannerMsg.JobID)
-		}
 
 		// prepare clair scan result
 		jobClairInfo := PrepareClairScanResult(jobScannerMsg, &vulnData, getErr)
+		if getErr != nil {
+			xray.ErrTaskInfo(getErr, jobScannerMsg.TaskID, jobScannerMsg.JobID)
+			// 判断是否超时
+			if getErr.Error() == "context deadline exceeded" {
+				jobClairInfo.JobStatus = model.StatusTimeout
+			}
+		}
 
 		// send to scancenter
 		requestJSON, _ := json.Marshal(jobClairInfo)

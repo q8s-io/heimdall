@@ -29,16 +29,20 @@ func JobTrivy(scanTime int) {
 
 		// get scanning data
 		vulnData, getErr := TrivyScan(imageName, scanTime)
-		if getErr != nil {
-			xray.ErrTaskInfo(getErr, jobScannerMsg.TaskID, jobScannerMsg.JobID)
-		}
 
 		// prepare trivy scan result
 		jobTrivyInfo := PrepareTrivyScanResult(jobScannerMsg, &vulnData, getErr)
+		if getErr != nil {
+			xray.ErrTaskInfo(getErr, jobScannerMsg.TaskID, jobScannerMsg.JobID)
+			// 判断是否超时
+			if getErr.Error() == "context deadline exceeded" {
+				jobTrivyInfo.JobStatus = model.StatusTimeout
+			}
+		}
 
 		// send to scancenter
 		requestJSON, _ := json.Marshal(jobTrivyInfo)
-		log.Printf("clair process %s \t %s", imageName, jobTrivyInfo.JobStatus)
+		log.Printf("trivy process %s \t %s", imageName, jobTrivyInfo.JobStatus)
 		_ = net.HTTPPUT(model.Config.ScanCenter.TrivyURL, string(requestJSON))
 	}
 }

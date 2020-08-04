@@ -14,7 +14,7 @@ import (
 
 var imageFullName string
 
-func ImageAnalyzer(imageName string, scanTime int) ([]string, []string) {
+func ImageAnalyzer(imageName string, scanTime int) ([]string, []string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*time.Duration(scanTime))
 	defer cancel()
 
@@ -30,9 +30,8 @@ PULLIMAGE:
 			imageFullName = fmt.Sprintf("docker.io/library/%s", imageName)
 			goto PULLIMAGE
 		default:
-			return nil, nil
+			return nil, nil, err
 		}
-
 	}
 
 	// inspect image
@@ -41,7 +40,7 @@ PULLIMAGE:
 	// remove image
 	DeleteImage(imageID, ctx)
 
-	return digest, layers
+	return digest, layers, nil
 }
 
 func PullImage(imageName string, ctx context.Context) error {

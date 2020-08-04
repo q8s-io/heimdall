@@ -93,7 +93,7 @@ func getTrivyResults(ctx context.Context, containerID string, path string) (mode
 	// 去除前后无用字符
 	bytes := deletePreAndSufSpace(buf.String())
 	if len(bytes) == 0 {
-		xray.ErrMini(errors.New("the len of trivy result is 0"))
+		return result, xray.ErrMiniInfo(errors.New("the len of trivy result is 0"))
 	}
 
 	if unmarshalErr := json.Unmarshal(bytes, &data); unmarshalErr != nil {

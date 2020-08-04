@@ -25,11 +25,17 @@ func JobAnalyzer(scanTime int) {
 		_ = json.Unmarshal(msg, &jobScannerMsg)
 		// image analyzer
 		imageName := jobScannerMsg.ImageName
-		digest, layers := docker.ImageAnalyzer(imageName, scanTime)
+		digest, layers, analyzerErr := docker.ImageAnalyzer(imageName, scanTime)
 		jobImageAnalyzerInfo := convert.JobImageAnalyzerInfoByMsg(jobScannerMsg, digest, layers)
+
 		if digest == nil || layers == nil {
 			jobImageAnalyzerInfo.JobStatus = model.StatusFailed
+			// 处理下载镜像超时
+			if analyzerErr != nil && analyzerErr.Error() == "context deadline exceeded" {
+				jobImageAnalyzerInfo.JobStatus = model.StatusTimeout
+			}
 		}
+
 		// send data to scancenter
 		requestJSON, _ := json.Marshal(jobImageAnalyzerInfo)
 		log.Printf("analyzer process %s \t %s", imageName, jobImageAnalyzerInfo.JobStatus)

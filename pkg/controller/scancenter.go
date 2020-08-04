@@ -6,7 +6,19 @@ import (
 	"github.com/q8s-io/heimdall/pkg/entity/model"
 	"github.com/q8s-io/heimdall/pkg/infrastructure/ginext"
 	"github.com/q8s-io/heimdall/pkg/provider/scancenter"
+
+	_ "github.com/q8s-io/heimdall/docs"
 )
+
+// @Summary 镜像漏洞结果
+// @Id 1
+// @Tags Image
+// @version 1.0
+// @Accept application/x-json-stream
+// @Param imageInfo body model.ImageRequestInfo true "文章"
+// @Success 200 object model.Result 成功后返回值
+// @Failure 409 object model.Result 添加失败
+// @Router /api/images/vuln/ [post]
 
 func GetImageVulnData(c *gin.Context) {
 	imageRequestInfo := new(model.ImageRequestInfo)

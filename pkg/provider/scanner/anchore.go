@@ -27,18 +27,27 @@ func JobAnchore(scanTime int) {
 		anchoreRequestInfo := convert.AnchoreRequestInfo(jobScannerMsg)
 
 		// trigger anchore scan
-		TriggerAnchoreScan(anchoreRequestInfo, scanTime)
-
-		// get anchore scan data
-		vulnRequestURL := model.Config.Anchore.AnchoreURL + "/v1/images/" + anchoreRequestInfo.ImageDigest + "/vuln/all"
-		vulnData, getErr := AnchoreGET(vulnRequestURL)
-		if getErr != nil {
-			xray.ErrTaskInfo(getErr, jobScannerMsg.TaskID, jobScannerMsg.JobID)
+		jobAnchoreInfo := new(model.JobScannerInfo)
+		timeoutStatus, scanError := TriggerAnchoreScan(anchoreRequestInfo, scanTime)
+		if scanError != nil {
+			xray.ErrTaskInfo(scanError, jobScannerMsg.TaskID, jobScannerMsg.JobID)
+			jobAnchoreInfo = PrepareAnchoreScanResult(jobScannerMsg, nil, scanError)
+		} else {
+			// handle timeout problem
+			if timeoutStatus {
+				jobAnchoreInfo = PrepareAnchoreScanResult(jobScannerMsg, nil, nil)
+				jobAnchoreInfo.JobStatus = model.StatusTimeout
+			} else {
+				// get anchore scan data
+				vulnRequestURL := model.Config.Anchore.AnchoreURL + "/v1/images/" + anchoreRequestInfo.ImageDigest + "/vuln/all"
+				vulnData, getErr := AnchoreGET(vulnRequestURL)
+				if getErr != nil {
+					xray.ErrTaskInfo(getErr, jobScannerMsg.TaskID, jobScannerMsg.JobID)
+				}
+				// prepare anchore scan result data
+				jobAnchoreInfo = PrepareAnchoreScanResult(jobScannerMsg, vulnData, getErr)
+			}
 		}
-
-		// prepare anchore scan result data
-		jobAnchoreInfo := PrepareAnchoreScanResult(jobScannerMsg, vulnData, getErr)
-
 		// send data to scancenter
 		requestJSON, _ := json.Marshal(jobAnchoreInfo)
 		log.Printf("anchore process  %s \t %s", jobAnchoreInfo.ImageName, jobAnchoreInfo.JobStatus)
@@ -46,30 +55,31 @@ func JobAnchore(scanTime int) {
 	}
 }
 
-func TriggerAnchoreScan(anchoreRequestInfo *model.AnchoreRequestInfo, scanTime int) {
+// handle timout result
+// return true represent timeout
+// return false represent not timeout
+func TriggerAnchoreScan(anchoreRequestInfo *model.AnchoreRequestInfo, scanTime int) (bool, error) {
 	triggerRequest, _ := json.Marshal(anchoreRequestInfo)
 	triggerURL := model.Config.Anchore.AnchoreURL + "/v1/images"
-	// 计时
 	startTime := time.Now()
 RETRY:
-	// 超时判断
+	// handle timeout
 	if time.Since(startTime) > time.Minute*time.Duration(scanTime) {
-		return
+		return true, nil
 	}
 	anchoreData := AnchorePOST(triggerURL, string(triggerRequest))
 	if len(anchoreData) == 0 {
-		xray.ErrMini(errors.New("anchoreData len is 0"))
-		return
+		return false, xray.ErrMiniInfo(errors.New("anchoreData len is 0"))
 	}
 	analysisStatus, ok := anchoreData[0]["analysis_status"].(string)
 	if !ok {
-		xray.ErrMini(errors.New("alert error"))
-		return
+		return false, xray.ErrMiniInfo(errors.New("alert status error"))
 	}
 	if analysisStatus != "analyzed" {
 		time.Sleep(3 * time.Second)
 		goto RETRY
 	}
+	return false, nil
 }
 
 func PrepareAnchoreScanResult(jobScannerMsg *model.JobScannerMsg, vulnData map[string]interface{}, runErr error) *model.JobScannerInfo {

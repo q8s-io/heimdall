@@ -1,6 +1,7 @@
 package scancenter
 
 import (
+	"encoding/json"
 	"log"
 
 	"github.com/pkg/errors"
@@ -21,7 +22,7 @@ func TaskImageScanRotaryCreate(imageRequestInfo *model.ImageRequestInfo) (*model
 func TaskImageScanRotaryAnalyzer(jobImageAnalyzerInfo *model.JobImageAnalyzerInfo) {
 	UpdateTaskImageScanDigest(jobImageAnalyzerInfo)
 	UpdateJobImageAnalyzer(jobImageAnalyzerInfo)
-	if jobImageAnalyzerInfo.JobStatus == model.StatusFailed {
+	if jobImageAnalyzerInfo.JobStatus != model.StatusSucceed {
 		// 删除redis缓存和标注扫描任务失败
 		JudgeTaskRotary(jobImageAnalyzerInfo.TaskID)
 		return
@@ -51,7 +52,8 @@ func TaskImageScanMerger(taskImageScan *entity.TaskImageScan) (interface{}, erro
 	jobAnchoreVuln := GetJobAnchore(taskID)
 	jobTrivyVuln := GetJobTrivy(taskID)
 	jobClairVuln := GetJobClair(taskID)
-	imageVulnData := MergerImageVulnData(taskImageScan, jobAnchoreVuln, jobTrivyVuln, jobClairVuln)
+	//imageVulnData := MergerImageVulnData(taskImageScan, jobAnchoreVuln, jobTrivyVuln, jobClairVuln)
+	imageVulnData := MergerImageVulnDataOnlyCVE(taskImageScan, jobAnchoreVuln, jobTrivyVuln, jobClairVuln)
 	return imageVulnData, nil
 }
 
@@ -78,6 +80,11 @@ func merge(vulnData *[]map[string]interface{}, cveMap *map[string]int, engineNam
 	}
 
 	for _, cveData := range jobVuln {
+		// 过滤开头不是CVE的信息
+		if cveData["cve"][:3] != "CVE" {
+			continue
+		}
+
 		idx, exist := (*cveMap)[cveData["cve"]]
 
 		// 不存在
@@ -133,4 +140,54 @@ func merge(vulnData *[]map[string]interface{}, cveMap *map[string]int, engineNam
 			}
 		}
 	}
+}
+
+func MergerImageVulnDataOnlyCVE(taskImageScan *entity.TaskImageScan, jobAnchoreVuln, jobTrivyVuln, jobClairVuln []map[string]string) *model.ImageVulnInfo {
+	var vulnData []map[string]interface{}
+	// key: cveID  value: index in vulnData。
+	cveMap := make(map[string]int)
+
+	mergeOnlyCVE(&vulnData, &cveMap, "Trivy", jobTrivyVuln)
+	mergeOnlyCVE(&vulnData, &cveMap, "Anchore", jobAnchoreVuln)
+	mergeOnlyCVE(&vulnData, &cveMap, "Clair", jobClairVuln)
+
+	taskImageScanInfo := convert.TaskImageScanInfo(taskImageScan)
+	imageVulnInfo := convert.ImageVulnByScanInfo(taskImageScanInfo, vulnData)
+	return imageVulnInfo
+}
+
+func mergeOnlyCVE(vulnData *[]map[string]interface{}, cveMap *map[string]int, engineName string, jobVuln []map[string]string) {
+	// 输出结果为空的引擎
+	if jobVuln == nil || len(jobVuln) == 0 {
+		log.Printf("scanner %s result empty", engineName)
+		return
+	}
+
+	for _, cveData := range jobVuln {
+		// 过滤开头不是CVE的信息
+		if cveData["cve"][:3] != "CVE" {
+			continue
+		}
+
+		_, exist := (*cveMap)[cveData["cve"]]
+
+		// 不存在
+		if !exist {
+			// 每次添加元素都需要重新分配内存，否则都是浅拷贝，会导致切片中的元素都一样。
+			curMap := make(map[string]interface{}, 1)
+			curMap["cve"] = cveData["cve"]
+			*vulnData = append(*vulnData, curMap)
+			(*cveMap)[cveData["cve"]] = len(*vulnData) - 1
+		}
+	}
+}
+
+func PrepareKafkaData(imageVulnData interface{}) model.VulnerabilityMsg {
+	responseData := map[string]interface{}{
+		"code": 1,
+		"msg":  nil,
+		"data": imageVulnData,
+	}
+	responseJSON, _ := json.Marshal(responseData)
+	return responseJSON
 }

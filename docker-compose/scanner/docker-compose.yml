@@ -2,29 +2,33 @@ version: '3'
 
 services:
   heimdall-analyzer:
-    image: uhub.service.ucloud.cn/devsecops/heimdall:7d1b156
+    image: uhub.service.ucloud.cn/devsecops/heimdall:208ac5b
     network_mode: "host"
     command: -type analyzer
-#    volumes:
-#      - ../../configs/pro.toml:/app/configs/pro.toml
+    restart: always
+    volumes:
+      - ../../configs/pro.toml:/app/configs/pro.toml
 
   heimdall-anchore:
-    image: uhub.service.ucloud.cn/devsecops/heimdall:7d1b156
+    image: uhub.service.ucloud.cn/devsecops/heimdall:208ac5b
     network_mode: "host"
     command: -type scanner-anchore
-#    volumes:
-#      - ../../configs/pro.toml:/app/configs/pro.toml
+    restart: always
+    volumes:
+      - ../../configs/pro.toml:/app/configs/pro.toml
 
   heimdall-trivy:
-    image: uhub.service.ucloud.cn/devsecops/heimdall:7d1b156
+    image: uhub.service.ucloud.cn/devsecops/heimdall:208ac5b
     network_mode: "host"
     command: -type scanner-trivy
-#    volumes:
-#      - ../../configs/pro.toml:/app/configs/pro.toml
+    restart: always
+    volumes:
+      - ../../configs/pro.toml:/app/configs/pro.toml
 
   heimdall-clair:
-    image: uhub.service.ucloud.cn/devsecops/heimdall:7d1b156
+    image: uhub.service.ucloud.cn/devsecops/heimdall:208ac5b
     network_mode: "host"
     command: -type scanner-clair
-#    volumes:
-#      - ../../configs/pro.toml:/app/configs/pro.toml
+    restart: always
+    volumes:
+      - ../../configs/pro.toml:/app/configs/pro.toml

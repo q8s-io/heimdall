@@ -8,7 +8,9 @@ import (
 )
 
 var SyncProducer sarama.SyncProducer
+var AsyncProducer sarama.AsyncProducer
 var syncProducerErr error
+var asyncProducerErr error
 
 func InitSyncProducer() {
 	config := sarama.NewConfig()
@@ -24,6 +26,19 @@ func InitSyncProducer() {
 	}
 }
 
+func InitAsyncProducer() {
+	config := sarama.NewConfig()
+	config.Producer.Return.Successes = true
+	config.Producer.Return.Errors = true
+	kafkaConfig := model.Config.Kafka
+
+	AsyncProducer, asyncProducerErr = sarama.NewAsyncProducer(kafkaConfig.BrokerList, config)
+	if asyncProducerErr != nil {
+		xray.ErrMini(asyncProducerErr)
+		panic(asyncProducerErr)
+	}
+}
+
 func SyncProducerSendMsg(topic string, message sarama.Encoder) {
 	msg := &sarama.ProducerMessage{
 		Topic: topic,
@@ -34,4 +49,12 @@ func SyncProducerSendMsg(topic string, message sarama.Encoder) {
 	if err != nil {
 		xray.ErrMini(err)
 	}
+}
+
+func AsyncProducerSendMsg(topic string, message sarama.Encoder) {
+	msg := &sarama.ProducerMessage{
+		Topic: topic,
+		Value: message,
+	}
+	AsyncProducer.Input() <- msg
 }

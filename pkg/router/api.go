@@ -20,6 +20,5 @@ func RunAPI() {
 		// update clair data
 		images.PUT("/clair/", controller.UpdateClairData)
 	}
-
 	_ = router.Run(":12001")
 }

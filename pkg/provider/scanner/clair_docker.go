@@ -18,8 +18,10 @@ func ClairScan(imageName string, scanTime int) (model.ClairScanResult, error) {
 	scanResult := model.ClairScanResult{}
 	clairConfig := model.Config.Clair
 	containerName := clairConfig.ContainerName
+
 	// The limits of container runtime is ScanTime minute
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*time.Duration(scanTime))
+
 	containerConfig := &container.Config{
 		Image: clairConfig.Image,
 		Cmd:   []string{imageName},
@@ -73,7 +75,7 @@ func getClairResults(ctx context.Context, containerID string) (model.ClairScanRe
 
 	bytes := deletePreChar(buf.String())
 	if len(bytes) == 0 {
-		xray.ErrMini(errors.New("the len of clair result is 0"))
+		return result, xray.ErrMiniInfo(errors.New("the len of clair result is 0"))
 	}
 	if unmarshalErr := json.Unmarshal(bytes, &result); unmarshalErr != nil {
 		return result, xray.ErrMiniInfo(unmarshalErr)
@@ -96,6 +98,7 @@ func deletePreChar(str string) []byte {
 		}
 	}
 	// 处理字符流中的无效字符，替换为‘ ’
+	// known:0.9.9
 	for i := lc; i <= rc; i++ {
 		ch := chList[i]
 		switch {
@@ -104,6 +107,8 @@ func deletePreChar(str string) []byte {
 		case ch == '\r':
 		case ch == '\n':
 		case ch == '\t':
+		case ch == '@':
+			chList[i] = ' '
 		case ch < ' ':
 			chList[i] = ' '
 		}
